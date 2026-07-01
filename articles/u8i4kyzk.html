@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI提示日志要留多少？DLP、脱敏和可排障之间怎么平衡 - top-api.cc AI API Blog</title><meta name="description" content="AI提示日志怎么留？本文从DLP、脱敏、采样、字段屏蔽、权限隔离和故障排查需求出发，讨论日志保留与安全之间的平衡。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">鏉╂柨娲栨＃鏍€?/a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-01</span></div><h1>AI提示日志要留多少？DLP、脱敏和可排障之间怎么平衡</h1><p class="summary">排障需要日志，安全又怕泄露。本文讨论 AI 提示日志在 DLP、脱敏、采样和权限隔离之间的平衡方案。</p><div class="content"><p>AI 系统越复杂，日志越重要。你需要知道用户输入了什么、模型返回了什么、哪一步超时、哪一条链路回退、哪个 key 消耗异常。</p>
+<p>但问题也很明显：日志里可能包含用户隐私、业务规则、内部文档、系统提示和敏感数据。</p>
+<p>所以真正困难的不是“要不要留日志”，而是“留到什么程度刚刚好”。</p>
+<h2>1. 全量原文日志很方便，也很危险</h2>
+<p>最省事的做法，是把请求和响应完整保存。但一旦进入生产，这种做法的风险会越来越高。</p>
+<h2>2. DLP 和脱敏要默认开启</h2>
+<p>更合理的方式是默认脱敏：</p>
+<ul>
+<li>Authorization header 永不明文落盘</li>
+<li>邮箱、手机号、身份证等字段自动识别</li>
+<li>系统提示中的密钥和内部链接做 masking</li>
+<li>某些字段只保留摘要</li>
+</ul>
+<h2>3. 采样比全量更可持续</h2>
+<p>不是所有请求都要完整保留。高风险任务、失败请求、回退请求、异常高成本请求，更适合提高采样率；普通成功请求只留结构化日志即可。</p>
+<h2>4. 排障视角和安全视角要分层</h2>
+<p>开发者需要知道哪一步出错，但不一定需要看到完整敏感内容。</p>
+<p>因此可以把日志拆成两层：</p>
+<ul>
+<li>结构化层：请求 ID、模型、token、延迟、错误码</li>
+<li>受控原文层：仅授权人员可见</li>
+</ul>
+<h2>5. 中转站层最适合做统一日志策略</h2>
+<p>如果每个应用都自己决定日志格式和脱敏规则，最后一定会越来越乱。</p>
+<p>统一入口能把日志治理集中起来，像 <code>https://top-api.cc</code> 这样的中转层更适合承接统一 DLP、字段屏蔽、采样和权限隔离。</p>
+<h2>结语</h2>
+<p>AI 日志不是留得越多越好，也不是越少越安全。关键在于：默认脱敏、结构化优先、异常请求重点保留、原文访问有权限边界。平衡做对了，排障和安全才不会互相拖后腿。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
