@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LiteLLM类代理怎么测安全：虚拟Key、预算和模型白名单检查清单 - top-api.cc AI API Blog</title><meta name="description" content="LiteLLM类代理安全测评要看虚拟Key、预算、模型白名单、管理密钥、日志脱敏、团队权限和回退策略。本文整理生产前检查清单。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-02</span></div><h1>LiteLLM类代理怎么测安全：虚拟Key、预算和模型白名单检查清单</h1><p class="summary">LiteLLM 类代理让多模型接入更方便，但生产使用前要检查虚拟 Key、预算、模型白名单、管理权限和日志脱敏。本文给出一份实用安全测评清单。</p><div class="content"><p>很多团队会用 LiteLLM 类代理或统一 AI Proxy 来连接多家模型供应商。它们的优点很明显：统一 OpenAI 兼容接口、支持多模型路由、能做虚拟 Key、预算、限流和成本统计。</p>
+<p>但代理层一旦进入生产，也会变成关键基础设施。它管着上游 key、模型权限、账单和日志，所以测评时不能只看“能不能转发”。</p>
+<h2>1. 虚拟Key是不是按团队和用途拆分</h2>
+<p>生产环境不应该让所有应用共用一把 key。更合理的做法是按团队、项目、环境和用途创建虚拟 Key。</p>
+<p>检查项包括：</p>
+<ul>
+<li>是否能限制 key 可访问的模型</li>
+<li>是否能设置单 key 预算</li>
+<li>是否能设置 RPM / TPM</li>
+<li>是否能快速停用或轮换</li>
+<li>是否能追踪 key 的调用历史</li>
+</ul>
+<p>如果虚拟 Key 只是一个转发凭证，没有预算和模型权限，那治理价值会大打折扣。</p>
+<h2>2. 模型白名单是否默认收紧</h2>
+<p>多模型代理最常见的问题，是模型列表越来越多，最后谁都能调贵模型。安全的默认策略应该是：新 key 默认不能访问高价或高风险模型，需要显式授权。</p>
+<p>尤其要检查：测试环境是否能调生产模型，普通脚本是否能调高价推理模型，外包或临时项目是否有过宽权限。</p>
+<h2>3. 管理密钥是否被隔离</h2>
+<p>代理层通常有 master key 或管理员凭证。它不应该出现在业务代码、前端、普通 CI 日志或共享文档里。</p>
+<p>管理密钥只应该用于创建和管理虚拟 Key，而业务调用应该使用受限 key。这个边界如果没守住，后面的权限设计都会失效。</p>
+<h2>4. 预算是否真的能阻断请求</h2>
+<p>预算功能不能只停留在看板上。测评时应该实际验证：超过预算后，请求是否会被阻断，错误信息是否清晰，是否会出现并发下预算绕过的问题。</p>
+<p>同时，要区分硬限制和软提醒。软提醒适合人工跟进，硬限制适合测试环境、临时项目和高风险 Agent。</p>
+<h2>5. 日志是否默认脱敏</h2>
+<p>AI 代理会看到 prompt、response、headers、错误信息和上游返回。日志里最容易泄露的是：Authorization、用户隐私、内部系统提示、数据库字段和业务文档片段。</p>
+<p>上线前要确认：敏感字段是否 masking，谁能看原文日志，日志保留多久，导出时是否仍然脱敏。</p>
+<h2>6. 为什么可以用中转站先收口</h2>
+<p>如果团队暂时不想自己维护完整代理系统，可以先用 <code>https://top-api.cc</code> 这样的统一入口承接多模型调用，把 key、模型路由和成本观测集中起来。后续再根据业务成熟度决定是否自建更复杂的网关。</p>
+<h2>结语</h2>
+<p>LiteLLM 类代理的价值不只是“一个接口调多家模型”，更重要的是治理能力。虚拟 Key、预算、模型白名单、管理密钥隔离和日志脱敏，才是生产测评里真正该逐项打勾的内容。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
