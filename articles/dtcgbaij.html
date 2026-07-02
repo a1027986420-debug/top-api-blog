@@ -1,0 +1,35 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI网关限流不能只按请求数：Token级配额怎么设计 - top-api.cc AI API Blog</title><meta name="description" content="AI网关限流不能只按请求数。本文从RPM、TPM、团队预算、模型分层、突发保护和成本告警出发，讨论AI中转站如何设计Token级配额。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-02</span></div><h1>AI网关限流不能只按请求数：Token级配额怎么设计</h1><p class="summary">传统 API 限流常按请求数计算，但 AI 调用的真实负载来自 token、上下文长度和重试成本。本文讨论 Token 级配额、分层限流和预算保护的设计方法。</p><div class="content"><p>很多团队最早接入 AI API 时，会沿用传统 Web API 的限流方式：每分钟多少次请求、每个 IP 多少并发、每个用户多少 QPS。这个思路能挡住一部分滥用，但放到大模型调用里，很快就不够用了。</p>
+<p>原因很简单：两个请求的成本可能完全不同。一个 200 token 的分类请求和一个 80K 上下文的文档分析请求，在网关里都算一次请求，但对上游额度、账单和延迟的压力不是一个量级。</p>
+<h2>为什么只看请求数会失真</h2>
+<p>AI 调用至少要同时看三类指标：</p>
+<ul>
+<li>RPM：每分钟请求数，用来控制入口频率</li>
+<li>TPM：每分钟 token 数，用来控制真实计算负载</li>
+<li>预算额度：按团队、项目、key 或环境限制总消耗</li>
+</ul>
+<p>如果只设置 RPM，高 token 请求仍然可能把账单打爆；如果只设置 TPM，小请求风暴又可能把队列挤满。所以更成熟的 AI 网关会把请求频率和 token 额度叠在一起看。</p>
+<h2>Token级配额应该按谁来分</h2>
+<p>常见的分配维度有四个：</p>
+<ol>
+<li>用户维度：防止单个账号异常消耗</li>
+<li>团队维度：让业务线对自己的使用负责</li>
+<li>项目维度：区分生产、测试、实验流量</li>
+<li>模型维度：高价模型和低价模型不能共享一套阈值</li>
+</ol>
+<p>例如，测试环境可以给较低的 TPM 和月预算，生产客服摘要可以给稳定的中等额度，而高价推理模型只开放给少数任务。</p>
+<h2>突发流量要有缓冲，也要有刹车</h2>
+<p>AI 调用经常出现短时间突发：批量生成、脚本循环、任务队列重放、Agent 失控调用工具。网关如果完全不允许突发，会影响正常业务；如果完全放开，又容易出现账单事故。</p>
+<p>更稳的做法是配置短窗口和长窗口：短窗口允许轻微突发，长窗口限制总体消耗。超过阈值后不要只有 429，还应该给出明确原因，比如 <code>team_budget_exceeded</code>、<code>token_quota_exceeded</code> 或 <code>model_not_allowed</code>。</p>
+<h2>成本告警比事后账单更重要</h2>
+<p>限流不是为了省一点边角钱，而是为了让成本可预测。团队应该至少设置三档告警：</p>
+<ul>
+<li>达到 50% 预算时提醒负责人</li>
+<li>达到 80% 预算时限制非生产流量</li>
+<li>达到 100% 预算时冻结低优先级 key</li>
+</ul>
+<p>如果这些策略散落在各个应用里，会很难统一执行。像 <code>https://top-api.cc</code> 这样的统一 AI 中转入口，更适合把 token 统计、模型分层、预算阈值和告警规则放在同一层处理。</p>
+<h2>设计配额时不要忘记业务优先级</h2>
+<p>不是所有请求都应该公平排队。生产告警摘要、客户工单分类、内部实验脚本，优先级应该不同。限流策略最好支持按业务标签分层：关键任务可以保留额度，实验任务可以在高峰期自动降级。</p>
+<h2>结语</h2>
+<p>AI 网关的限流不能停留在“每分钟多少次”。真正有效的策略，是把 RPM、TPM、预算、模型价格和业务优先级放在一起设计。这样既能保护上游额度，也能防止团队在月底才发现成本失控。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
