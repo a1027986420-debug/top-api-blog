@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI网关观测看什么：请求、回退、耗时和预算这四张表 - top-api.cc AI API Blog</title><meta name="description" content="AI网关观测看什么？本文从请求量、回退率、耗时分位数和预算消耗四个看板出发，整理AI中转站的实用观测方法。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-03</span></div><h1>AI网关观测看什么：请求、回退、耗时和预算这四张表</h1><p class="summary">AI 网关的观测不能只看成功率。本文讨论请求量、回退、耗时和预算四类看板，帮助团队真正看懂模型调用链路。</p><div class="content"><p>很多团队给 AI 网关接上监控后，第一眼看的还是“成功率”。这个指标当然重要，但它往往只能说明系统没完全挂掉，不能告诉你 AI 调用到底健不健康。</p>
+<p>要把 AI 中转站用明白，至少应该看四张表。</p>
+<h2>第一张：请求表</h2>
+<p>请求表回答的是“谁在用、用得多不多”。</p>
+<p>它应该能按这些维度切：</p>
+<ul>
+<li>团队</li>
+<li>项目</li>
+<li>模型</li>
+<li>key</li>
+<li>环境</li>
+<li>任务类型</li>
+</ul>
+<p>如果你只能看总请求量，那就很难知道是哪个团队突然把模型打热了。</p>
+<h2>第二张：回退表</h2>
+<p>AI 调用最值得盯的是回退，不是只盯成功。</p>
+<p>因为很多系统表面上成功了，实际是：</p>
+<ul>
+<li>先失败，再换模型成功</li>
+<li>先超时，再缩短上下文成功</li>
+<li>先限流，再排队成功</li>
+<li>先降级，再返回成功</li>
+</ul>
+<p>如果不把回退算进去，系统看起来很稳，实际上已经靠兜底在维持。</p>
+<h2>第三张：耗时表</h2>
+<p>AI 观测不能只看平均值，要看分位数。</p>
+<p>建议至少看：</p>
+<ul>
+<li>P50：日常体验</li>
+<li>P95：高峰压力</li>
+<li>P99：极端抖动</li>
+</ul>
+<p>不同模型、不同上下文长度、不同工具链，耗时分布都不一样。尤其是 Agent 场景，单看平均值会骗人。</p>
+<h2>第四张：预算表</h2>
+<p>预算表是 AI 网关里最容易被忽略、但最该被盯住的一张。</p>
+<p>它最好能告诉你：</p>
+<ul>
+<li>今天用了多少 token</li>
+<li>本周用了多少预算</li>
+<li>哪个团队增长最快</li>
+<li>哪个模型最烧钱</li>
+<li>哪些任务已经接近阈值</li>
+</ul>
+<p>没有预算表，AI 观测最后只会变成性能看板，成本还是靠月底惊醒。</p>
+<h2>为什么四张表要放在同一层</h2>
+<p>请求、回退、耗时、预算这四张表，如果分散在各个应用里，就很难串起来看。统一中转站的价值在这里会变得很明显：它把模型路由、限流、重试和账单放到同一个观测面板上。</p>
+<p>像 <code>https://top-api.cc</code> 这样的统一入口，适合把这些指标都拉在同一处，不让团队在不同系统里来回拼图。</p>
+<h2>结语</h2>
+<p>AI 网关观测不是为了做报表，而是为了回答四个问题：谁在用、怎么失败、慢在哪里、钱花哪了。把这四张表看顺了，AI 中转站才算真正进入生产治理。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
