@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI中转站为什么要做优先级队列：把实验流量和生产流量分开 - top-api.cc AI API Blog</title><meta name="description" content="AI中转站要不要做优先级队列？本文从生产流量、实验任务、批处理和故障回退出发，讨论如何在AI网关里做流量隔离与调度。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-03</span></div><h1>AI中转站为什么要做优先级队列：把实验流量和生产流量分开</h1><p class="summary">当 AI 调用开始同时服务生产请求、实验脚本和批处理任务时，单纯按先来先服务会放大排队和成本问题。本文讨论优先级队列、流量隔离和降级策略。</p><div class="content"><p>AI 调用一旦真正进入生产，就会遇到一个很现实的问题：不是所有请求都该平等排队。</p>
+<p>同一条网关入口里，可能同时存在客服摘要、业务报表、AB 实验、脚本回放、模型对比、定时批处理和 Agent 工具调用。如果都按先来先服务，排在后面的生产请求很容易被实验流量挤掉。</p>
+<h2>先到先得在 AI 场景里不够用</h2>
+<p>传统 API 里，队列长一点，用户大多只是慢一点。AI 场景里，慢不只是慢，还可能触发：</p>
+<ul>
+<li>上游超时</li>
+<li>重试放大</li>
+<li>成本翻倍</li>
+<li>任务积压</li>
+<li>业务侧误判为故障</li>
+</ul>
+<p>所以 AI 中转站不该只是转发层，还应该是调度层。</p>
+<h2>优先级队列至少要分三类</h2>
+<p>比较实用的拆法是：</p>
+<ol>
+<li>生产关键流量：客服、告警、在线用户请求</li>
+<li>灰度和实验流量：模型对比、提示词实验、AB 测试</li>
+<li>批处理流量：日报、离线总结、任务重放、脚本清洗</li>
+</ol>
+<p>三类流量如果混在一起，排队策略会失真。实验流量可以等，生产流量不能等，批处理流量可以慢慢消化。</p>
+<h2>优先级不是插队，是可控地让路</h2>
+<p>优先级队列的核心不是让某个请求永远插队，而是让系统知道哪些流量可以让路。</p>
+<p>一个成熟的做法通常会有：</p>
+<ul>
+<li>高优先级保留槽位</li>
+<li>中优先级普通排队</li>
+<li>低优先级在拥塞时自动限速</li>
+<li>超时后自动降级到便宜模型或更短上下文</li>
+</ul>
+<p>这样做的结果是，实验不会拖垮线上，线上也不会因为实验而延迟暴涨。</p>
+<h2>实验流量和生产流量还要分开记账</h2>
+<p>如果实验流量和生产流量共用同一个账单视图，月底回看时很难判断到底是业务增长还是实验烧钱。</p>
+<p>更稳的做法是把任务标签写进网关：</p>
+<ul>
+<li><code>traffic=prod</code></li>
+<li><code>traffic=experiment</code></li>
+<li><code>traffic=batch</code></li>
+<li><code>priority=high/normal/low</code></li>
+</ul>
+<p>有了这些标签，预算、告警和报表才能真正可用。</p>
+<h2>降级策略要在队列层准备好</h2>
+<p>如果高优先级请求堆积，AI 中转站最好能自动降级，而不是让用户一直等。</p>
+<p>常见降级方式包括：</p>
+<ul>
+<li>切到较便宜模型</li>
+<li>缩短上下文</li>
+<li>减少工具调用</li>
+<li>直接返回结构化摘要</li>
+<li>暂时拒绝低优先级任务</li>
+</ul>
+<p><code>https://top-api.cc</code> 这类统一入口适合承接这一层，因为它可以把路由、限流、预算和降级策略放在同一处处理。</p>
+<h2>结语</h2>
+<p>AI 中转站的优先级队列不是锦上添花，而是生产化的基础设施。只要你的流量同时存在在线请求、实验任务和批处理，队列就不该只有“先来先服务”这一种逻辑。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
