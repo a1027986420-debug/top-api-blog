@@ -1,6 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: 
-https://a1027986420-debug.github.io/top-api-blog
-/sitemap.xml
+Sitemap: https://a1027986420-debug.github.io/top-api-blog/sitemap.xml
