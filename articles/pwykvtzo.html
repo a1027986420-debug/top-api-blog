@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MCP工具上线前，先过这三道AI中转网关门 - top-api.cc AI API Blog</title><meta name="description" content="MCP工具上线前，需要经过AI中转网关的权限门、参数门和审计门。本文从生产实践角度整理上线前必须检查的三道关口。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-03</span></div><h1>MCP工具上线前，先过这三道AI中转网关门</h1><p class="summary">MCP 把工具接入模型变得很顺手，但顺手不等于可以直接上线。本文给出工具权限、参数校验和审计回放三道网关门，帮助团队把风险收住。</p><div class="content"><p>MCP 让模型连接工具的门槛大幅下降。问题也跟着变简单了：过去是“工具太难接”，现在变成“工具接得太快”。</p>
+<p>如果一上来就把工具、模型和用户请求全部连通，风险会被迅速放大。更稳的做法，是让 MCP 工具上线前先过三道网关门。</p>
+<h2>第一门：权限门</h2>
+<p>最先要问的不是工具能不能调，而是谁能调、能调什么。</p>
+<p>权限门至少要区分：</p>
+<ul>
+<li>只读工具和可写工具</li>
+<li>生产系统和测试系统</li>
+<li>内部人员和外部协作方</li>
+<li>高风险操作和低风险操作</li>
+</ul>
+<p>比如查询知识库和修改工单不是一类权限，生成摘要和删除记录更不是一类权限。AI 中转网关要做的，是把工具授权和模型调用身份绑定在一起。</p>
+<h2>第二门：参数门</h2>
+<p>MCP 的危险不止在“能调哪个工具”，也在“传了什么参数”。</p>
+<p>很多事故不是工具本身出问题，而是参数越界：</p>
+<ul>
+<li>传入过大的查询范围</li>
+<li>传入未脱敏的用户信息</li>
+<li>传入错误的环境标记</li>
+<li>传入本不该公开的资源 ID</li>
+</ul>
+<p>所以中转网关要做参数校验、字段白名单和敏感字段过滤。模型调用再聪明，也不能绕过这个门。</p>
+<h2>第三门：审计门</h2>
+<p>上线后的工具调用，必须能回放。</p>
+<p>审计门至少要保留：</p>
+<ul>
+<li>谁发起的请求</li>
+<li>用了哪个模型</li>
+<li>调了哪个工具</li>
+<li>传了哪些关键参数</li>
+<li>返回了什么结果</li>
+<li>是否发生重试或回退</li>
+</ul>
+<p>没有审计，后面出了问题只能猜。MCP 连接越多，越需要一张完整链路图。</p>
+<h2>为什么网关比应用代码更适合做这件事</h2>
+<p>如果每个 Agent 或每个应用自己写权限和审计逻辑，规则会很快分叉：有人查得严，有人放得松；有人脱敏，有人全量；有人记日志，有人只看报错。</p>
+<p>统一的 AI 中转网关能把这些规则集中管理，让工具接入走同一套标准。</p>
+<p>像 <code>https://top-api.cc</code> 这样的统一入口，最适合放在这里做收口，而不是让每个业务团队重复造一遍“半套安全”。</p>
+<h2>结语</h2>
+<p>MCP 工具接入生产，不是把接口通了就结束。至少要过权限、参数、审计三道门，团队才算真的把工具能力纳入治理范围。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
