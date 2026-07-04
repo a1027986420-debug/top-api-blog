@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>网关侧脱敏比应用里补丁更稳：AI调用前后该过滤哪些字段 - top-api.cc AI API Blog</title><meta name="description" content="AI调用前后该过滤哪些字段？本文从输入、上下文、工具结果、模型输出和日志出发，整理AI中转站网关侧脱敏的实用方法。"><link rel="canonical" href="https://a1027986420-debug.github.io/top-api-blog/articles/h3ywuti7.html"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-04</span></div><h1>网关侧脱敏比应用里补丁更稳：AI调用前后该过滤哪些字段</h1><p class="summary">AI调用链里的敏感信息可能出现在输入、上下文、工具返回和日志里。本文整理网关侧脱敏的字段清单、保留策略和审计方式，降低数据泄露风险。</p><div class="content"><p>AI安全里有一类问题特别常见：团队知道要脱敏，但脱敏逻辑散落在各个应用里。一个服务过滤手机号，另一个服务忘了过滤身份证；一个接口过滤输入，另一个接口把工具返回原样塞进提示词。</p>
+<p>这就是为什么脱敏更适合放在网关侧。不是说业务应用不用管，而是AI中转站应该提供一层统一兜底。</p>
+<h2>输入里先过滤直接标识符</h2>
+<p>进入模型前，最先要处理的是直接标识符，例如：</p>
+<ul>
+<li>手机号</li>
+<li>邮箱</li>
+<li>身份证号</li>
+<li>地址</li>
+<li>银行卡</li>
+<li>API Key</li>
+<li>访问Token</li>
+<li>内部工单号或客户ID</li>
+</ul>
+<p>这些字段如果不是任务必需，就不应该进入模型上下文。即使任务需要，也应该尽量替换为占位符，让模型处理结构而不是处理真实敏感值。</p>
+<h2>上下文也要脱敏</h2>
+<p>很多团队只过滤用户输入，却忘了检索增强和工具返回。RAG片段、CRM查询结果、日志摘要、数据库返回，都可能携带敏感字段。</p>
+<p>因此脱敏点应该覆盖：</p>
+<ul>
+<li>用户原始输入</li>
+<li>系统提示词变量</li>
+<li>检索片段</li>
+<li>工具调用结果</li>
+<li>历史对话</li>
+<li>最终写入日志的内容</li>
+</ul>
+<p>只在入口过滤一次是不够的，因为敏感信息可能在链路中途被工具带回来。</p>
+<h2>输出也需要检查</h2>
+<p>模型输出不是天然安全的。它可能复述输入中的敏感信息，也可能把工具返回里的字段带出来。</p>
+<p>对于面向外部用户的场景，网关可以在输出前再做一轮轻量检查：是否包含密钥形态、身份证形态、手机号形态，是否出现内部域名、内部错误栈、调试字段等。</p>
+<p>这不是为了替代业务规则，而是防止明显泄露穿透到用户侧。</p>
+<h2>脱敏不是全部打码</h2>
+<p>脱敏的目标是降低风险，同时保留任务可用性。如果所有字段都替换成星号，模型可能无法完成任务。</p>
+<p>更好的方式是按字段类型处理：</p>
+<ul>
+<li>手机号保留后四位</li>
+<li>邮箱保留域名</li>
+<li>ID替换成稳定占位符</li>
+<li>密钥完全隐藏</li>
+<li>金额按区间保留</li>
+<li>地址只保留城市或区域</li>
+</ul>
+<p>这样既减少暴露，也保留足够上下文。</p>
+<h2>日志脱敏要比请求更严格</h2>
+<p>日志保存时间通常比一次请求长得多，也更容易被更多内部人员访问。因此日志脱敏应该比实时请求更严格。</p>
+<p>建议普通日志只保存摘要、哈希、字段类型和调用结果。原始内容如果必须保存，应放在更高权限区域，并设置过期时间。</p>
+<h2>为什么放在AI中转站更稳</h2>
+<p>脱敏逻辑如果散在每个应用里，很难保证一致。统一AI中转站可以把敏感字段识别、替换、日志策略和审计放在同一层，让所有模型调用走相同底线。</p>
+<p>像 <code>https://top-api.cc</code> 这样的统一入口，适合把脱敏作为默认能力接入：应用仍然可以做业务级过滤，但网关层负责最后一道通用防线。</p>
+<h2>结语</h2>
+<p>AI脱敏不是上线前随手加几个正则，而是贯穿输入、上下文、工具结果、输出和日志的链路治理。越早把脱敏放到网关侧，后续接入的应用和工具越不容易各自为战。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
