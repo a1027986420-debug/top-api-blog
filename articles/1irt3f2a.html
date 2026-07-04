@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI代理审计日志要记什么：从提示词到工具结果都要能回放 - top-api.cc AI API Blog</title><meta name="description" content="AI代理审计日志要记什么？本文从身份、模型、提示词、工具调用、参数、结果摘要和重试链路出发，整理可回放的Agent审计方法。"><link rel="canonical" href="https://a1027986420-debug.github.io/top-api-blog/articles/1irt3f2a.html"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-04</span></div><h1>AI代理审计日志要记什么：从提示词到工具结果都要能回放</h1><p class="summary">Agent调用链比普通API更长，排障和合规都离不开审计日志。本文整理一次AI代理请求中应记录的身份、模型、提示词、工具、参数和结果摘要。</p><div class="content"><p>普通API出问题，通常看请求、响应、状态码就能定位一大半。AI Agent不一样。一次用户请求可能包含多轮模型推理、多个工具调用、几次重试、一次回退和若干中间结果。</p>
+<p>如果没有审计日志，问题发生后就很难回答：模型为什么这么做？调用了哪个工具？参数是谁生成的？结果有没有被改写？这也是AI中转站必须补上的能力。</p>
+<h2>先记录请求身份</h2>
+<p>审计的第一步是知道“谁发起了请求”。至少要记录：</p>
+<ul>
+<li>用户或服务身份</li>
+<li>团队和项目</li>
+<li>API Key或调用凭证</li>
+<li>环境标识</li>
+<li>请求来源IP或应用名</li>
+</ul>
+<p>这些信息不是为了多收集数据，而是为了出问题时能做归因。没有身份，后面的模型和工具日志都很难解释。</p>
+<h2>记录模型选择和路由原因</h2>
+<p>Agent请求经常会经过模型路由。审计日志里不只要写“用了哪个模型”，还要写为什么用了它。</p>
+<p>例如：</p>
+<ul>
+<li>默认模型</li>
+<li>高复杂度升级</li>
+<li>失败后回退</li>
+<li>预算限制降级</li>
+<li>上游限流切换</li>
+</ul>
+<p>这样才能判断一次异常结果是模型能力问题、路由策略问题，还是预算策略导致的降级。</p>
+<h2>提示词要可追踪但要脱敏</h2>
+<p>提示词审计最容易踩坑。一方面，没有提示词就无法复盘；另一方面，提示词里可能包含用户隐私、业务数据和密钥片段。</p>
+<p>更稳的做法是保存脱敏后的提示词、模板版本、变量摘要和哈希值。需要深度排障时，再按权限查看原始内容。不要把所有原始提示词无差别写进普通日志。</p>
+<h2>工具调用要记录参数边界</h2>
+<p>Agent真正的风险通常出现在工具调用上。审计日志至少要记录：</p>
+<ul>
+<li>工具名称</li>
+<li>工具版本</li>
+<li>调用时间</li>
+<li>参数摘要</li>
+<li>参数校验结果</li>
+<li>返回状态</li>
+<li>返回摘要</li>
+</ul>
+<p>如果工具涉及写操作，还应记录审批状态、执行人和资源ID。这样才能在问题发生后还原动作链。</p>
+<h2>结果日志要适合回放</h2>
+<p>审计日志不是越多越好，而是要能回放。一次完整链路最好能按时间线展开：用户请求、模型响应、工具调用、工具结果、下一轮模型、最终输出。</p>
+<p>有了这条时间线，排障人员不用猜模型“可能想了什么”，而是能看见它在每一步拿到了什么信息、做了什么动作。</p>
+<h2>中转站是天然审计点</h2>
+<p>如果Agent应用各自记录日志，字段和口径很容易不同。统一AI中转站则可以在请求入口处标准化审计格式，把模型调用、工具调用、成本和延迟放进同一条链路。</p>
+<p><code>https://top-api.cc</code> 这类统一入口适合做这件事：它不只负责转发请求，也能帮助团队沉淀可追踪的调用链，为排障、安全复盘和成本分析提供依据。</p>
+<h2>结语</h2>
+<p>AI代理审计日志不是合规装饰，而是生产系统的黑匣子。身份、模型、提示词、工具、参数和结果都能回放，团队才敢让Agent承担更复杂的任务。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
