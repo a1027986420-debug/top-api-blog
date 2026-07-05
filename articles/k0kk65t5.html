@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>重试和熔断要一起配：AI网关如何避免失败放大账单 - top-api.cc AI API Blog</title><meta name="description" content="AI网关如何避免失败放大账单？本文从重试、熔断、退避、降级和预算控制出发，整理生产AI调用链的稳定性策略。"><link rel="canonical" href="https://a1027986420-debug.github.io/top-api-blog/articles/k0kk65t5.html"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-05</span></div><h1>重试和熔断要一起配：AI网关如何避免失败放大账单</h1><p class="summary">AI调用失败时盲目重试会放大延迟和成本。本文整理AI网关中重试、熔断、退避、降级和预算控制如何配合，避免上游故障拖垮系统。</p><div class="content"><p>很多AI系统的第一次故障，不是上游完全不可用，而是重试把问题放大了。上游偶尔超时，客户端不断重试，队列开始堆积，Token预算继续消耗，最后延迟和账单一起爆。</p>
+<p>所以AI网关不能只配置重试，还要同时配置熔断。</p>
+<h2>重试不是越多越稳</h2>
+<p>重试能解决偶发网络抖动，但也会带来成本。一次用户请求如果内部重试三次，账单可能不是一份，而是两份、三份甚至更多。</p>
+<p>尤其是长上下文、Agent多轮调用和工具链路里，重试开销会被隐藏在一次“外层请求”下面。网关必须把重试次数和重试成本记录下来。</p>
+<h2>熔断的作用是停止无效请求</h2>
+<p>当某个模型或供应商连续失败，继续转发只会浪费时间和预算。熔断器应该在错误率、超时率或排队时间超过阈值时临时关闭该上游，让流量走备用模型或返回降级结果。</p>
+<p>熔断不是放弃，而是给系统一个恢复窗口。</p>
+<h2>退避策略很关键</h2>
+<p>如果所有请求都在同一时间重试，上游恢复前会再次被打满。退避策略可以让重试间隔逐步拉长，并加入随机抖动，避免流量同时冲上去。</p>
+<p>AI场景里还要限制重试Token预算：超过预算后，就不该继续尝试同样昂贵的请求。</p>
+<h2>降级比死等更好</h2>
+<p>当高质量模型不可用时，可以考虑：</p>
+<ul>
+<li>切到备用模型</li>
+<li>缩短上下文</li>
+<li>返回摘要版结果</li>
+<li>延迟处理低优先级任务</li>
+<li>暂停非关键工具调用</li>
+</ul>
+<p>这些动作最好在AI中转站统一配置，而不是让每个应用自己写一套临时判断。</p>
+<h2>预算也要参与熔断</h2>
+<p>熔断不只看错误率，也应该看成本。如果某个任务的重试成本超过阈值，系统要及时停止，而不是为了“最终成功”无限烧钱。</p>
+<p>通过 <code>https://top-api.cc</code> 这样的统一入口，团队可以把重试、熔断、模型路由和预算放在同一层判断，避免应用只看到成功响应，却看不到背后已经重试了多少次。</p>
+<h2>结语</h2>
+<p>AI调用链的稳定性不是靠多重试堆出来的。重试解决偶发失败，熔断避免连续失败放大，降级保证业务可用，预算控制防止账单失控。四者一起配，AI网关才算真正进入生产级。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
