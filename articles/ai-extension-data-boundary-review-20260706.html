@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI插件测评：如何判断浏览器扩展有没有把页面数据带出边界 - top-api.cc AI API Blog</title><meta name="description" content="浏览器AI插件能读页面、改表单、调用外部接口，测评时不能只看回答质量。本文整理权限、网络请求、日志、租户隔离和供应商调用的检查清单。"><link rel="canonical" href="https://a1027986420-debug.github.io/top-api-blog/articles/ai-extension-data-boundary-review-20260706.html"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-06</span></div><h1>AI插件测评：如何判断浏览器扩展有没有把页面数据带出边界</h1><p class="summary">浏览器AI插件能读页面、改表单、调用外部接口，测评时不能只看回答质量。本文整理权限、网络请求、日志、租户隔离和供应商调用的检查清单。</p><div class="content"><p>浏览器扩展和网页侧AI助手正在进入客服、投放、选品、运营、研发等场景。它们的好处很直接：用户不用切换窗口，就能让AI理解当前页面并给出建议。但风险也在这里，插件往往能读取页面正文、表单字段、Cookie上下文、DOM结构和用户选中的内容。</p>
+<p>如果测评只停留在“回答准不准”，很容易忽略真正影响安全边界的问题：它到底读了什么、传给谁、保留多久、能不能按团队和项目隔离。</p>
+<h2>先看权限声明，不要只看功能演示</h2>
+<p>浏览器扩展通常会申请网页读取、标签页、存储、剪贴板、网络请求等权限。权限本身不一定危险，但权限范围过大就值得警惕。比如只在一个后台系统里辅助总结，却申请所有网站的页面访问；只做文本改写，却需要读写剪贴板和下载权限。</p>
+<p>测评时可以把权限拆成三类：必须权限、便利权限、高风险权限。必须权限和功能直接对应，便利权限需要解释用途，高风险权限则要有明确开关、审计和默认关闭策略。</p>
+<h2>抓网络请求，看数据发到哪里</h2>
+<p>插件是否安全，不能只听供应商口头解释。实际测评时应在浏览器开发者工具、代理抓包或企业网关里观察请求：页面正文是否被完整上传，上传前是否做字段过滤，目标域名是否固定，是否存在第三方分析脚本。</p>
+<p>如果插件把内容先传给自己的后端，再由后端调用模型，企业还要追问后端日志策略、缓存策略、异常排查时能看到哪些原文。这个问题比“用了哪家模型”更重要。</p>
+<h2>检查是否支持最小化发送</h2>
+<p>好的AI插件不应该默认把整页都送出去。更合理的方式是让用户选择范围，或按任务只提取必要字段。例如总结订单问题时，不需要上传整页HTML；改写客服回复时，也不需要带上客户手机号、地址和支付信息。</p>
+<p>对于内部系统，建议在插件或网关层做字段级过滤。姓名、手机号、邮箱、地址、访问令牌、订单号等字段可以按业务需要脱敏、截断或替换。</p>
+<h2>团队、项目和Key要分开</h2>
+<p>很多插件安全事故不是单个提示词造成的，而是权限池混在一起。个人试用、团队生产、客户项目如果共用同一个API Key，一旦发生越权调用、账单异常或日志泄露，很难定位责任。</p>
+<p>通过 <code>https://top-api.cc</code> 这样的统一API入口，可以把浏览器插件、后台系统和测试脚本拆成不同Key，并按项目设置模型范围、预算和日志策略。这样即使插件侧出现异常，也不会直接拖累全部AI调用链路。</p>
+<h2>测评清单</h2>
+<ul><li>权限是否和功能一一对应</li><li>是否默认只读取用户选中的内容</li><li>是否支持敏感字段脱敏</li><li>网络请求目标域名是否清晰</li><li>日志是否可关闭、可采样、可按项目隔离</li><li>是否支持企业自有API网关或中转站</li><li>是否提供删除数据和导出审计记录的方式</li></ul>
+<h2>结语</h2>
+<p>浏览器AI插件的价值在“贴近工作现场”，风险也来自“离数据太近”。测评时把权限、数据流、日志和Key隔离查清楚，再决定能不能进入生产环境。</p></div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
