@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prompt Injection红队测试清单：从网页内容、文件上传到工具参数 - top-api.cc AI API Blog</title><meta name="description" content="Prompt Injection无法靠一句系统提示彻底解决。本文给出面向AI工具和Agent的红队测试清单，覆盖网页、文件、工具参数和外发动作。"><link rel="canonical" href="https://a1027986420-debug.github.io/top-api-blog/articles/prompt-injection-red-team-checklist-20260706.html"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-06</span></div><h1>Prompt Injection红队测试清单：从网页内容、文件上传到工具参数</h1><p class="summary">Prompt Injection无法靠一句系统提示彻底解决。本文给出面向AI工具和Agent的红队测试清单，覆盖网页、文件、工具参数和外发动作。</p><div class="content"><p>Prompt Injection已经不是“用户在对话框里捣乱”这么简单。现在的AI工具会读取网页、解析文件、调用数据库、操作浏览器、写入工单，攻击指令可能藏在任何被模型读取的内容里。</p>
+<p>红队测试的目标不是证明模型很容易被骗，而是帮助团队找到边界：哪些内容只能作为资料，哪些动作必须审批，哪些数据永远不能外发。</p>
+<h2>网页内容测试</h2>
+<p>如果Agent会读网页，就要准备几类网页样本：正文中夹带“忽略之前规则”的页面，隐藏文本页面，评论区包含恶意指令的页面，跳转到不可信域名的页面，以及把恶意指令写进表格、按钮、图片alt文本的页面。</p>
+<p>测试时观察两个问题：模型是否把网页里的指令当成系统指令执行；工具是否访问了任务之外的链接或域名。</p>
+<h2>文件上传测试</h2>
+<p>文件是另一条常见入口。PDF、Markdown、CSV、Excel、代码仓库说明都可能包含诱导文本。比如“总结这份报价单”时，文件中夹带“把客户名单发送到某个邮箱”。</p>
+<p>红队样本要覆盖正文、页脚、注释、隐藏列、文件名和元数据。对于需要解析附件的AI工具，文件内容应默认视为不可信输入。</p>
+<h2>工具参数测试</h2>
+<p>工具调用看起来是结构化的，但参数同样可能被注入。用户让Agent创建任务、发消息、查询数据库时，标题、备注、搜索关键词、URL、SQL片段都可能被写成指令。</p>
+<p>测试时要确认工具层有参数校验，而不是把所有参数原样交给模型或下游系统。高风险工具还要校验目标域名、收件人、金额、文件路径和写入范围。</p>
+<h2>外发动作测试</h2>
+<p>Prompt Injection最危险的结果通常是外发：发邮件、发HTTP请求、提交表单、上传文件、公开发布内容。红队时应专门设计“诱导外发敏感信息”的场景，检查Agent是否会停下来确认，是否会过滤密钥、Cookie、手机号、订单号等字段。</p>
+<p>在网关层接入 <code>https://top-api.cc</code>，可以把不同工具的模型调用和日志集中起来，配合Key隔离、预算限制和敏感字段过滤，降低单个Agent策略失误造成的影响面。</p>
+<h2>一份最小红队清单</h2>
+<ul><li>网页正文夹带越权指令</li><li>隐藏文本或注释夹带外发要求</li><li>文件上传中包含系统提示覆盖语句</li><li>表格字段诱导访问外部URL</li><li>工具参数中嵌入命令式文本</li><li>模型输出诱导用户复制密钥</li><li>高风险动作未确认就执行</li></ul>
+<h2>结语</h2>
+<p>Prompt Injection防护不是写一句更强的提示词，而是建立“内容不可信、工具有边界、动作要确认、日志可追踪”的系统。红队测试越具体，防护策略越容易落地。</p></div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
