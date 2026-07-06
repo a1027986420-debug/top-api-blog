@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/</loc>
-    <lastmod>2026-07-05</lastmod>
+    <lastmod>2026-07-06</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/0813ejao.html</loc>
@@ -207,5 +207,25 @@
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/xvujozu5.html</loc>
     <lastmod>2026-07-05</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-extension-data-boundary-review-20260706.html</loc>
+    <lastmod>2026-07-06</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-agent-replay-testing-before-launch-20260706.html</loc>
+    <lastmod>2026-07-06</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-api-tenant-isolation-key-pool-20260706.html</loc>
+    <lastmod>2026-07-06</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/prompt-injection-red-team-checklist-20260706.html</loc>
+    <lastmod>2026-07-06</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-api-supply-chain-risk-review-20260706.html</loc>
+    <lastmod>2026-07-06</lastmod>
   </url>
 </urlset>
