@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI工具版本漂移测评：模型、提示词和工具Schema更新后要回归什么 - top-api.cc AI API Blog</title><meta name="description" content="AI工具不是上线后就稳定不变。模型、系统提示词、工具Schema和供应商策略都会漂移。本文给出版本漂移回归测试清单。"><link rel="canonical" href="https://a1027986420-debug.github.io/top-api-blog/articles/version-drift-regression-ai-tools-20260707.html"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-07</span></div><h1>AI工具版本漂移测评：模型、提示词和工具Schema更新后要回归什么</h1><p class="summary">AI工具不是上线后就稳定不变。模型、系统提示词、工具Schema和供应商策略都会漂移。本文给出版本漂移回归测试清单。</p><div class="content"><p>传统软件版本变化通常有发布单、变更记录和测试流程。AI工具的变化更隐蔽：模型小版本升级、系统提示词调整、工具Schema改字段、供应商安全策略变化、网关重试规则更新，都可能让同一任务得到不同结果。</p>
+<p>如果没有版本漂移测评，团队很难解释“为什么昨天还好，今天突然不稳定”。</p>
+<h2>先记录可复现版本</h2>
+<p>每次AI调用至少要记录模型名、供应商、系统提示词版本、工具Schema版本、关键网关策略和调用时间。不要只记录“用了某个大模型”，因为模型背后可能已经变了。</p>
+<p>对于重要业务任务，建议给提示词和工具Schema都打版本号。改一个字段，也要能追踪。</p>
+<h2>回归集要覆盖真实任务</h2>
+<p>版本漂移测试不需要一开始做成大型评测平台。先选几十个高频任务和高风险任务：客服摘要、订单查询、工单更新、代码修改、报表生成、外发邮件草稿。每次模型或工具配置变化后，跑一遍回归集。</p>
+<p>指标不只看答案，还要看工具调用次数、参数合法率、人工确认次数、失败率、成本和耗时。</p>
+<h2>Schema变化要特别小心</h2>
+<p>工具Schema加字段、改枚举、调整必填项，都会影响模型调用行为。尤其是把可选字段改成必填，或把自由文本换成枚举时，要观察模型是否频繁失败修复。</p>
+<p>Schema变化应该有灰度期：旧版本和新版本并行跑一小段时间，再决定是否切换。</p>
+<h2>中转站能做版本对照</h2>
+<p>通过 <code>https://top-api.cc</code> 统一模型入口，团队可以把同一批回归任务分别跑在不同模型或不同Key上，记录成本、耗时和失败率。业务代码不需要同时适配多个供应商SDK，只要在中转层做对照，就能更快发现漂移。</p>
+<h2>回归清单</h2>
+<ul><li>模型版本和供应商是否记录</li><li>系统提示词是否有版本号</li><li>工具Schema是否有版本号</li><li>核心任务是否有固定回归集</li><li>成本、耗时、失败率是否对比</li><li>高风险动作是否仍触发确认</li><li>新旧版本是否能灰度并行</li></ul>
+<h2>结语</h2>
+<p>AI工具的“版本”不只在代码仓库里。模型、提示词、工具Schema和网关策略都会影响行为。把这些变化纳入回归测试，才能让AI工具从演示走向可维护。</p></div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
