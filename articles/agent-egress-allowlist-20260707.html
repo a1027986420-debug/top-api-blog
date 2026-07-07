@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI Agent联网前先配出口白名单：别让工具随便访问外部域名 - top-api.cc AI API Blog</title><meta name="description" content="能联网的AI Agent风险不只在提示词，还在它能访问哪些域名。本文整理出口白名单、下载限制、回调拦截和AI中转站侧观测的落地方法。"><link rel="canonical" href="https://a1027986420-debug.github.io/top-api-blog/articles/agent-egress-allowlist-20260707.html"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-07</span></div><h1>AI Agent联网前先配出口白名单：别让工具随便访问外部域名</h1><p class="summary">能联网的AI Agent风险不只在提示词，还在它能访问哪些域名。本文整理出口白名单、下载限制、回调拦截和AI中转站侧观测的落地方法。</p><div class="content"><p>当AI Agent开始能搜索网页、下载文件、调用HTTP接口时，网络出口就成了新的安全边界。很多团队只关心Agent有没有权限执行命令，却忽略了它能访问哪些域名、能不能上传内容、能不能跟随跳转、能不能下载可执行文件。</p>
+<p>出口白名单不是为了把Agent变笨，而是为了让联网能力服务于明确任务，而不是变成任意外发通道。</p>
+<h2>先按任务定义允许域名</h2>
+<p>不同Agent任务应该有不同出口范围。客服Agent可能只需要访问公司知识库和工单系统；采购Agent可能需要访问少数供应商站点；研发Agent也许需要访问官方文档和包管理源。不要给所有Agent一个“全网可访问”的默认权限。</p>
+<p>白名单最好按团队、项目、Key和工具分层。实验环境可以宽一点，生产环境要收窄。临时放开的域名需要过期时间和理由。</p>
+<h2>限制跳转和下载</h2>
+<p>只允许访问起始域名还不够。网页可能302跳转到另一个域，下载链接可能指向对象存储，脚本可能加载第三方资源。Agent工具应记录最终访问域名，并在跳转后重新检查白名单。</p>
+<p>下载也要分类型。文本、PDF、图片可以进入低风险处理流程；压缩包、可执行文件、脚本、Office宏文件要更严格，必要时只允许人工下载。</p>
+<h2>外发请求要单独管</h2>
+<p>搜索和读取是输入，提交表单、POST请求、上传文件是输出。很多提示注入攻击最终目的不是让Agent读错，而是诱导它把内部数据发出去。因此工具层要区分读取请求和外发请求，外发默认需要确认或审批。</p>
+<p>Anthropic等平台关于计算机使用的安全建议也强调隔离环境、限制互联网访问和让人确认高影响动作。对企业来说，这些原则不应只停留在模型提示词里，而应该落实到网关和工具执行层。</p>
+<h2>中转站能补上观测</h2>
+<p>通过 <code>https://top-api.cc</code> 这样的统一AI API入口，团队可以按Agent或项目记录模型调用、工具失败、成本和异常峰值。虽然网络出口本身通常在工具运行环境控制，但中转站能帮助判断某个Agent是否突然开始长上下文外发、频繁重试或切换到高成本模型。</p>
+<h2>测评清单</h2>
+<ul><li>是否支持按Agent配置域名白名单</li><li>跳转后的最终域名是否重新校验</li><li>下载文件是否按类型分级</li><li>POST、上传、发邮件等外发动作是否需要确认</li><li>是否记录访问域名、状态码、耗时和调用链ID</li><li>白名单临时例外是否有过期时间</li></ul>
+<h2>结语</h2>
+<p>AI Agent联网能力越强，越需要清晰的出口边界。把域名、跳转、下载和外发动作分开管，才能让Agent真的适合进入生产环境。</p></div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
