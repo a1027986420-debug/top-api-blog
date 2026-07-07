@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/</loc>
-    <lastmod>2026-07-06</lastmod>
+    <lastmod>2026-07-07</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/0813ejao.html</loc>
@@ -227,5 +227,45 @@
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-api-supply-chain-risk-review-20260706.html</loc>
     <lastmod>2026-07-06</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/schema-guardrails-tool-calls-20260707.html</loc>
+    <lastmod>2026-07-07</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/agent-egress-allowlist-20260707.html</loc>
+    <lastmod>2026-07-07</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/multimodal-upload-hidden-instructions-20260707.html</loc>
+    <lastmod>2026-07-07</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ephemeral-credentials-for-ai-agents-20260707.html</loc>
+    <lastmod>2026-07-07</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/reversible-actions-ai-tool-review-20260707.html</loc>
+    <lastmod>2026-07-07</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/remote-mcp-authorization-checklist-20260707.html</loc>
+    <lastmod>2026-07-07</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/context-provenance-poisoning-defense-20260707.html</loc>
+    <lastmod>2026-07-07</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/version-drift-regression-ai-tools-20260707.html</loc>
+    <lastmod>2026-07-07</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/byok-governance-ai-gateway-20260707.html</loc>
+    <lastmod>2026-07-07</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/human-confirmation-ux-ai-agent-20260707.html</loc>
+    <lastmod>2026-07-07</lastmod>
   </url>
 </urlset>
