@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI Agent人工确认不是弹个确认框：高风险动作要展示什么 - top-api.cc AI API Blog</title><meta name="description" content="人工确认如果只写是否继续，用户很难判断风险。本文整理AI Agent高风险动作确认页应展示的对象、差异、成本、外发和回滚信息。"><link rel="canonical" href="https://a1027986420-debug.github.io/top-api-blog/articles/human-confirmation-ux-ai-agent-20260707.html"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-07</span></div><h1>AI Agent人工确认不是弹个确认框：高风险动作要展示什么</h1><p class="summary">人工确认如果只写是否继续，用户很难判断风险。本文整理AI Agent高风险动作确认页应展示的对象、差异、成本、外发和回滚信息。</p><div class="content"><p>很多AI Agent产品都说“高风险动作会让用户确认”。但确认框如果只写一句“是否继续”，用户其实没有足够信息判断。AI生成的动作可能很长、目标对象很多、影响范围不清，用户点确认往往只是相信工具。</p>
+<p>人工确认不是形式，而是一种风险沟通界面。</p>
+<h2>确认页先说清楚动作</h2>
+<p>确认页应该用结构化方式说明：Agent准备做什么、操作对象是谁、将写入哪些字段、是否外发、是否会产生费用、是否影响其他人。不要只展示一大段模型自然语言总结。</p>
+<p>例如发邮件动作，应展示收件人、抄送、主题、正文摘要、附件和是否外部域名。修改工单动作，应展示字段差异和旧值。</p>
+<h2>差异比全文更重要</h2>
+<p>用户不一定有时间读完整输出，但必须看到变化点。代码提交展示diff，CRM更新展示字段旧值和新值，配置变更展示新增、删除和修改项。没有差异视图的确认，很容易变成盲签。</p>
+<p>对批量动作，还要展示样本和总量。比如“更新120条客户记录”，至少要显示筛选条件、样本记录和可回滚方式。</p>
+<h2>成本和权限也要展示</h2>
+<p>高风险动作不只是业务风险，也包括成本和权限风险。确认页可以展示预计模型成本、工具调用次数、将使用的Key或项目、是否需要外网访问。这样用户能发现异常，比如一个简单任务突然需要大量调用。</p>
+<p>通过 <code>https://top-api.cc</code> 统一接入AI API时，团队可以把成本、模型和Key信息纳入确认页或审计记录，让用户知道这次动作背后的调用路径。</p>
+<h2>确认结果要能审计</h2>
+<p>谁确认、何时确认、确认了什么版本、执行结果如何，都要记录。否则事后只能看到Agent做了动作，看不到人类是否真正批准。</p>
+<p>确认记录还要绑定任务ID和模型调用ID，方便回放。</p>
+<h2>确认页清单</h2>
+<ul><li>动作类型和目标对象</li><li>字段差异或内容diff</li><li>外发对象和域名</li><li>预计成本和工具调用次数</li><li>使用的项目、Key或权限范围</li><li>回滚方式和失败处理</li><li>确认人、时间和执行结果</li></ul>
+<h2>结语</h2>
+<p>人工确认不是一句“你确定吗”。它应该让用户用最短时间看清动作、差异、成本和后果。确认页设计得好，AI Agent才能把自动化和责任边界同时做好。</p></div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
