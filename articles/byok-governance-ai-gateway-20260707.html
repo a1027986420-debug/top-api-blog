@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI中转站支持BYOK时，客户Key该怎么隔离、计费和吊销 - top-api.cc AI API Blog</title><meta name="description" content="BYOK能让客户自带模型Key，但也带来隔离、计费、日志和吊销问题。本文从AI中转站治理角度拆解BYOK上线前的检查项。"><link rel="canonical" href="https://a1027986420-debug.github.io/top-api-blog/articles/byok-governance-ai-gateway-20260707.html"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-07</span></div><h1>AI中转站支持BYOK时，客户Key该怎么隔离、计费和吊销</h1><p class="summary">BYOK能让客户自带模型Key，但也带来隔离、计费、日志和吊销问题。本文从AI中转站治理角度拆解BYOK上线前的检查项。</p><div class="content"><p>BYOK，也就是Bring Your Own Key，在AI工具里越来越常见。客户希望使用自己的模型供应商账号和额度，平台则提供统一界面、工作流和工具能力。听起来很简单：让客户填一个Key就行。但真正上线后，隔离、计费、日志和吊销都会变成治理问题。</p>
+<p>BYOK不是表单字段，而是一套Key生命周期管理。</p>
+<h2>Key不能和平台池混用</h2>
+<p>客户自带Key应和平台自有Key完全分开。请求路由、预算、错误处理、日志、告警都要能区分来源。否则客户会问：这次失败是我的Key余额不足，还是平台路由出错？这笔费用算谁的？</p>
+<p>混用Key池会让排障和责任边界变得很乱。</p>
+<h2>日志要避免暴露客户Key</h2>
+<p>BYOK场景里，平台通常不应该在日志中保存明文Key。更好的方式是保存Key指纹、客户ID、供应商、模型和调用结果。排障时能定位是哪把Key，却不能从日志里恢复密钥。</p>
+<p>如果需要测试Key有效性，也应该只做最小权限的健康检查，不要默认发起高成本请求。</p>
+<h2>吊销和轮换要由客户可控</h2>
+<p>客户应该能随时删除、禁用或替换自己的Key。平台侧要立即停止使用旧Key，并清理相关缓存。对于失败中的任务，要明确是重试、暂停还是切换到客户指定的备用Key。</p>
+<p>轮换时最好支持新旧Key短暂并行，避免生产任务中断。</p>
+<h2>中转站承担治理层</h2>
+<p>通过 <code>https://top-api.cc</code> 这类统一中转入口，团队可以把BYOK请求和平台Key请求分开计量，按客户、项目、模型和Key指纹统计用量。这样既不需要每个业务系统都理解供应商差异，又能给客户清晰的用量账。</p>
+<h2>检查清单</h2>
+<ul><li>BYOK和平台Key是否物理或逻辑隔离</li><li>日志是否只保存Key指纹而非明文</li><li>客户是否能自助吊销和轮换</li><li>健康检查是否低成本、低权限</li><li>错误信息是否区分客户Key问题和平台问题</li><li>用量是否能按客户、项目、模型统计</li></ul>
+<h2>结语</h2>
+<p>BYOK能提升客户信任，也会把密钥治理要求推高。隔离、日志、吊销、轮换和计费都设计清楚，BYOK才不会从卖点变成支持噩梦。</p></div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
