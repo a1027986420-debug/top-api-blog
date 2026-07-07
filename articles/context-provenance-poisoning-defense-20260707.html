@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI上下文投毒怎么防：检索结果、网页摘要和历史记忆都要标来源 - top-api.cc AI API Blog</title><meta name="description" content="Agent会把检索结果、网页内容和历史记忆混进同一上下文。本文讨论来源标记、可信等级、过期策略和AI中转站侧观测如何降低上下文投毒风险。"><link rel="canonical" href="https://a1027986420-debug.github.io/top-api-blog/articles/context-provenance-poisoning-defense-20260707.html"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-07</span></div><h1>AI上下文投毒怎么防：检索结果、网页摘要和历史记忆都要标来源</h1><p class="summary">Agent会把检索结果、网页内容和历史记忆混进同一上下文。本文讨论来源标记、可信等级、过期策略和AI中转站侧观测如何降低上下文投毒风险。</p><div class="content"><p>AI Agent做任务时，经常把很多内容塞进同一个上下文：用户指令、系统规则、网页搜索结果、RAG召回片段、历史记忆、工具返回值、错误日志。上下文越丰富，越容易出现一个问题：模型分不清哪些内容可信，哪些只是资料。</p>
+<p>上下文投毒不是只发生在RAG系统里。任何会把外部内容带进模型的AI工具，都需要来源标记。</p>
+<h2>不同来源要分层</h2>
+<p>最基本的做法，是给每段上下文标注来源类型：用户输入、系统规则、内部知识库、外部网页、工具结果、历史记忆、模型自我总结。系统规则和授权策略应该永远高于网页内容；外部网页和用户上传文件默认不可信。</p>
+<p>如果所有内容都拼成一段纯文本，模型更容易把第三方资料里的命令当成真实指令。</p>
+<h2>可信等级要可见</h2>
+<p>来源标记还不够，还要有可信等级。公司制度、已审核知识库、实时数据库、用户上传文档、公开网页、历史记忆，可信度不同。工具执行前可以根据可信等级决定是否允许动作。</p>
+<p>例如外部网页可以用于摘要和引用，但不应直接触发发邮件、改权限、上传文件等动作。</p>
+<h2>历史记忆要有过期策略</h2>
+<p>Agent记忆很方便，但旧记忆可能过期、被污染或不再适用于当前项目。记忆应有创建时间、来源、适用范围和过期条件。长期记忆进入生产前，最好经过人工确认或自动规则筛选。</p>
+<p>把每次对话的模型总结直接当成长期事实，是很危险的省事。</p>
+<h2>中转站看调用异常</h2>
+<p>上下文投毒往往会带来调用侧异常：上下文突然变长、工具调用次数上升、模型切换到高成本路径、失败重试增多。通过 <code>https://top-api.cc</code> 这类统一API入口，可以按项目观察token、耗时、失败率和模型使用变化，帮助团队发现某个Agent任务是否被异常内容带偏。</p>
+<h2>落地清单</h2>
+<ul><li>每段上下文标注来源</li><li>外部内容默认低可信</li><li>工具执行前检查来源等级</li><li>历史记忆设置过期和适用范围</li><li>召回片段保留文档ID和更新时间</li><li>异常长上下文触发告警或降级</li></ul>
+<h2>结语</h2>
+<p>上下文越丰富，越需要秩序。来源、可信度、时间和适用范围标清楚，模型才更不容易把“资料里的话”误当成“必须执行的命令”。</p></div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
