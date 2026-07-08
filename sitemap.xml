@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/</loc>
-    <lastmod>2026-07-07</lastmod>
+    <lastmod>2026-07-08</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/0813ejao.html</loc>
@@ -267,5 +267,45 @@
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/human-confirmation-ux-ai-agent-20260707.html</loc>
     <lastmod>2026-07-07</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/agent-memory-retention-policy-20260708.html</loc>
+    <lastmod>2026-07-08</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/agent-handoff-boundary-review-20260708.html</loc>
+    <lastmod>2026-07-08</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/llm-dos-cost-shaping-20260708.html</loc>
+    <lastmod>2026-07-08</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/shadow-ai-inventory-gateway-20260708.html</loc>
+    <lastmod>2026-07-08</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-api-error-taxonomy-20260708.html</loc>
+    <lastmod>2026-07-08</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/browser-agent-session-isolation-20260708.html</loc>
+    <lastmod>2026-07-08</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-coding-tool-write-boundaries-20260708.html</loc>
+    <lastmod>2026-07-08</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/tool-output-taint-tracking-20260708.html</loc>
+    <lastmod>2026-07-08</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-vendor-contract-metrics-20260708.html</loc>
+    <lastmod>2026-07-08</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/agent-observability-for-product-managers-20260708.html</loc>
+    <lastmod>2026-07-08</lastmod>
   </url>
 </urlset>
