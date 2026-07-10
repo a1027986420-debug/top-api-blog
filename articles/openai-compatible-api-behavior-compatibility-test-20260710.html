@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpenAI 兼容接口为什么不等于行为兼容：中转站要测哪些协议细节 - top-api.cc AI API Blog</title><meta name="description" content="整理 OpenAI 兼容 API 的行为兼容测试项，覆盖鉴权、错误、流式事件、工具调用、usage 和参数边界。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-10</span></div><h1>OpenAI 兼容接口为什么不等于行为兼容：中转站要测哪些协议细节</h1><p class="summary">不同供应商都提供 OpenAI 兼容接口，但流式事件、工具调用、错误码、usage、最大 token 和模型别名可能完全不同。迁移前应做一份行为兼容矩阵，而不是只改 base url。</p><div class="content"><p>把 SDK 的 base_url 换成另一个地址，通常可以让最简单的聊天请求跑起来，但这不代表应用已经兼容。不同供应商可能对模型别名、系统消息、工具参数、流式事件、错误结构和 token 限制有不同解释。真正的迁移成本往往在边界条件，而不是第一条成功响应。</p>
+<h2>先测请求和响应的基本形状</h2>
+<p>检查鉴权头、组织或项目字段、模型名、消息角色、空内容、图片输入和最大 token 参数。响应侧要记录 id、created、model、choices、finish_reason、usage 和错误字段是否存在，类型是否稳定。不要因为客户端没有报错就认为字段可用，很多业务逻辑会依赖这些字段做计费和状态判断。</p>
+<h2>流式和工具调用最容易出现差异</h2>
+<p>流式接口可能使用不同事件类型、结束标记和 usage 位置；有的实现会把工具调用参数拆成增量片段，有的则一次性返回。客户端如果只按文本 delta 拼接，遇到工具事件就可能丢失参数。测试时要覆盖普通文本、并行工具、工具错误、拒答和主动取消。</p>
+<p>工具调用还要检查 schema 是否严格执行、未知字段如何处理、工具结果角色是否被接受，以及模型是否会在没有必要时调用工具。兼容接口的“能发出去”不等于“行为相同”，尤其不能把一个供应商的安全策略推断到另一个供应商。</p>
+<h2>错误与计费也要放进矩阵</h2>
+<p>至少制造鉴权失败、限流、超时、模型不存在、上下文过长、内容拒答和上游暂时不可用六类错误。记录 HTTP 状态、内部错误码、是否建议重试和是否已经产生费用。对重试策略来说，429 和参数错误的处理完全不同；对账单来说，响应失败也可能已经消耗 token。</p>
+<p>在统一入口上，网关可以把供应商差异映射成内部错误分类、模型别名和 usage 结构。使用 <a href="https://top-api.cc">top-api.cc</a> 做迁移测试时，建议保留原始响应摘要和映射后的响应，方便判断是上游行为变化还是适配层改写造成的问题。</p>
+<h2>一份最小兼容矩阵</h2>
+<ul>
+<li>鉴权、组织字段和模型别名；</li>
+<li>文本、多模态和空内容请求；</li>
+<li>流式事件、结束原因和 usage；</li>
+<li>工具 schema、参数增量和工具错误；</li>
+<li>限流、超时、拒答和上下文超限；</li>
+<li>token 计数、价格字段和账单关联；</li>
+<li>最大输出、温度、采样和未知参数处理。</li>
+</ul>
+<p>兼容性报告最好给出“完全兼容、需要适配、明确不支持”三种结论，并附最小复现请求。这样开发者迁移时知道哪些功能可以直接切换，哪些需要 feature flag 或专用适配器。</p>
+<p>参考资料：各供应商的 OpenAI-compatible API 文档、LiteLLM Proxy 和 Portkey Gateway 的适配说明。接口文档会更新，测试结果应标注日期、模型和 SDK 版本。</p>
+<p>如果你需要同时管理多个兼容接口和回退策略，可以从 <a href="https://top-api.cc">top-api.cc</a> 统一 base_url 开始，但仍要保留自己的兼容矩阵和回归样本。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
