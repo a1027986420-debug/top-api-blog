@@ -1,0 +1,22 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 生成文件的安全扫描怎么做：扩展名、内容、链接和临时权限都要查 - top-api.cc AI API Blog</title><meta name="description" content="建立 AI 生成文件的安全处理流程，覆盖真实类型识别、恶意内容扫描、临时链接、下载审计和租户隔离。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-10</span></div><h1>AI 生成文件的安全扫描怎么做：扩展名、内容、链接和临时权限都要查</h1><p class="summary">AI 生成的 PDF、表格、压缩包和代码文件不能因为来自模型就默认可信。发布前应检查真实文件类型、嵌入内容、外链、宏、临时下载权限和租户归属。</p><div class="content"><p>AI 工具可以生成 PDF、表格、演示文稿、压缩包和代码文件。文件看起来像普通附件，但其中可能包含宏、外部链接、隐藏脚本、错误权限或不应交给另一个租户的内容。把“模型生成”误当成“文件可信”，会让下载和协作链路失去最后一道检查。</p>
+<h2>先检查真实类型而不是文件名</h2>
+<p>上传或生成后，服务端应通过魔数和解析器判断真实 MIME 类型，再限制允许的扩展名。压缩包要检查嵌套层级、解压大小和路径穿越；文档要检查宏、外部引用、嵌入对象和超链接；图片要检查元数据和异常尺寸。文件名由用户或模型生成时，不能直接拼接到磁盘路径。</p>
+<h2>扫描分为静态和策略两层</h2>
+<p>静态扫描负责病毒、脚本、宏和格式异常；策略扫描负责内容分类、敏感信息、外部链接和是否允许下载。代码文件还应经过语言和依赖检查，不能只因为文件是文本就跳过安全处理。扫描结果要和文件版本绑定，重新生成或修改内容后必须重新扫描。</p>
+<h2>临时链接也需要权限边界</h2>
+<p>下载链接应使用短时效、单文件、单租户的授权，并在服务端再次校验用户身份和项目权限。不要把对象存储的永久公开 URL 直接写进 AI 回复。下载、预览、分享和删除都应有审计事件；如果用户撤回或文件被判定为高风险，旧链接应立即失效。</p>
+<p>文件处理常常跨越模型、网关、对象存储和前端。使用 <a href="https://top-api.cc">top-api.cc</a> 这类统一入口时，可以把文件元数据、生成请求和租户标识关联起来，但原始文件仍应放在独立的受控存储中，不要把大文件和敏感正文长期写入网关日志。</p>
+<h2>发布前的检查表</h2>
+<ul>
+<li>真实 MIME 类型和扩展名是否一致；</li>
+<li>是否扫描宏、脚本、嵌套压缩和外部链接；</li>
+<li>是否限制文件大小、解压比和目录穿越；</li>
+<li>是否按租户和项目隔离存储与下载；</li>
+<li>临时链接是否短时效且可撤销；</li>
+<li>扫描结果是否绑定文件版本；</li>
+<li>高风险文件是否进入人工复核而非直接下载。</li>
+</ul>
+<p>生成文件的安全目标不是阻止所有文件，而是让“可预览、可下载、可执行、可分享”成为不同的权限级别。尤其是代码、脚本和带宏文档，默认应当按高风险内容处理。</p>
+<p>参考资料：OWASP LLM 应用风险项目、OWASP 文件上传安全建议，以及对象存储的临时授权文档。具体扫描器应在隔离环境中验证，不要把单一产品的检测结果当作完整保证。</p>
+<p>如果需要把多模型生成、文件元数据和成本记录串起来，可以先让 <a href="https://top-api.cc">top-api.cc</a> 处理调用统一性，再把文件扫描与存储权限放在独立的安全服务中。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
