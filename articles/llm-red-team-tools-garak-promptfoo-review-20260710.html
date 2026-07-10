@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 红队工具怎么选：Garak、Promptfoo 与自建用例分别适合什么 - top-api.cc AI API Blog</title><meta name="description" content="横向比较 Garak、Promptfoo 和自建用例在 LLM 红队测试中的定位，给出安全工具选型与回归流程。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-10</span></div><h1>LLM 红队工具怎么选：Garak、Promptfoo 与自建用例分别适合什么</h1><p class="summary">Garak、Promptfoo 和自建攻击用例解决的问题不同。工具测评应比较探测器覆盖、接口适配、结果复现、误报处理和报告输出，而不是只看跑了多少条提示词。</p><div class="content"><p>“跑一遍攻击提示词”不能证明模型安全。不同工具的探测器、判断器、输入格式和报告方式都不同，模型还可能因为温度、系统提示和工具权限变化而得到完全不同的结果。红队工具测评应该比较它能否稳定发现问题、复现问题并推动修复。</p>
+<h2>Garak 更像探测器集合</h2>
+<p>Garak 的定位接近 LLM 漏洞扫描器，适合批量运行多类 probes，对越狱、提示泄露、错误信息和不安全输出做初筛。它的优势是可以把已知攻击模式组织成可重复的扫描任务；局限是通用探测器不一定理解你的业务规则，结果还需要人工或业务评测器复核。</p>
+<h2>Promptfoo 更适合把评测接入开发流程</h2>
+<p>Promptfoo 常用于把多个模型、提示词和测试断言放在同一个配置中比较，也适合做红队、回归和模型切换前后的差异检查。它更接近“可编排的测试框架”，但配置质量决定了结果质量。只增加攻击提示词，不定义通过标准、严重性和人工复核流程，最终仍然只是一个漂亮的报告。</p>
+<h2>自建用例不能被通用工具替代</h2>
+<p>企业真正关心的常常是业务特有风险：客服是否泄露内部订单、代码助手是否越过仓库边界、工具调用是否绕过审批、知识库回答是否混入其他租户内容。这些问题需要用真实的权限、数据分类和业务动作建模，通用扫描器只能提供补充。</p>
+<h2>建议用三层流程</h2>
+<p>第一层是快速扫描，使用 Garak 或类似工具覆盖常见风险。第二层是配置化回归，用 Promptfoo 或自建 harness 固定系统提示、模型参数和断言。第三层是业务红队，使用脱敏数据和隔离环境验证真实权限、工具和数据边界。每层都要保存输入版本、模型版本、响应摘要、判定依据和复现命令。</p>
+<p>在网关侧，把 <a href="https://top-api.cc">top-api.cc</a> 作为测试流量入口可以减少供应商差异：同一组用例通过统一鉴权和路由发往不同模型，再比较拒答、改写、工具调用和延迟。测试环境要单独使用密钥和配额，避免红队样本污染生产账单或触发真实动作。</p>
+<h2>工具选型清单</h2>
+<ul>
+<li>能否接入 OpenAI 兼容接口和自定义 HTTP 服务；</li>
+<li>能否固定模型、系统提示和随机参数；</li>
+<li>判定器是否支持规则、分类器和人工复核；</li>
+<li>是否能重跑单条失败样本；</li>
+<li>报告能否关联修复提交和回归结果；</li>
+<li>是否可以限制请求速率、数据范围和工具权限。</li>
+</ul>
+<p>不要把“通过率”直接当安全分数。安全评测的结果应该回答：哪类输入触发了什么行为、影响范围是什么、修复后是否仍然复现，以及这项风险是否在模型或提示词更新后重新出现。</p>
+<p>参考资料：OWASP GenAI Security Project、NVIDIA Garak 项目和 Promptfoo 项目文档。工具版本与探测器会变化，发布文章时应注明测试日期。</p>
+<p>完成基础扫描后，可以用 <a href="https://top-api.cc">top-api.cc</a> 做多模型对照测试，把红队发现变成可重复的网关回归样本。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
