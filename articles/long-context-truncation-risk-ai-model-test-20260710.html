@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>长上下文模型怎么测截断风险：不是窗口越大，答案就一定越可靠 - top-api.cc AI API Blog</title><meta name="description" content="从截断方向、信息位置、重复内容、成本和多轮对话五个方面评测长上下文模型的真实可用性。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-10</span></div><h1>长上下文模型怎么测截断风险：不是窗口越大，答案就一定越可靠</h1><p class="summary">长上下文测评要关注真正被模型看到的内容、截断方向、关键信息位置、重复文档和成本增长。窗口标称长度不能替代对“信息是否还在上下文里”的验证。</p><div class="content"><p>长上下文宣传常常只强调最大 token 数，但业务真正遇到的是：历史消息太长后哪些内容被丢掉，检索片段重复后模型是否忽略关键证据，超出限制时网关如何处理，以及长输入带来的成本和延迟是否还能接受。</p>
+<h2>先确认谁在截断</h2>
+<p>可能截断请求的地方有客户端、Agent 框架、网关、供应商 SDK 和模型服务。每一层的方向也不同：从最早消息开始删、从检索结果末尾删，或只保留摘要。测试时应记录发送前 token 数、网关改写后的 token 数、供应商返回的 usage 和最终保留的消息摘要。否则出现错误时，团队很容易把问题归咎于模型。</p>
+<h2>用位置测试发现“看见但没用上”</h2>
+<p>把同一个关键事实分别放在上下文开头、中间、结尾和工具结果中，再用相同问题询问。加入相似但错误的干扰内容，检查模型是否能按来源和优先级选择正确事实。对多轮对话，要测试旧指令、用户撤回和最新约束的冲突，避免单轮样本给出过于乐观的结果。</p>
+<h2>预算应该按任务管理</h2>
+<p>可以把上下文拆成系统规则、用户输入、历史摘要、检索证据和工具结果五个预算区。每个区有上限，超出后采用可解释策略：摘要、去重、降级为标题，或要求用户确认。比起把所有内容塞进最大窗口，明确预算更容易控制成本和延迟，也方便排查回答为什么发生变化。</p>
+<p>如果请求经常需要在不同模型之间回退，统一网关可以在路由前计算 token 预算，选择能容纳当前上下文的模型，并保留“删掉了什么”的摘要记录。使用 <a href="https://top-api.cc">top-api.cc</a> 这类入口时，最好把上下文裁剪策略放在自己的业务层或显式配置中，不要依赖某家上游的隐式行为。</p>
+<h2>测评结果至少包含这些项</h2>
+<ul>
+<li>发送前、改写后和响应后的 token 数；</li>
+<li>不同位置的关键信息准确率；</li>
+<li>检索重复、冲突和过期信息下的表现；</li>
+<li>截断后是否给出明确标记；</li>
+<li>上下文长度增长带来的 P95 延迟和成本；</li>
+<li>模型切换后摘要和指令优先级是否保持。</li>
+</ul>
+<p>长上下文不是免费存储。它会增加隐私暴露面、提示注入入口和账单波动。对于高风险应用，应把信息最小化、来源标记和人工确认放在“扩大窗口”之前。</p>
+<p>参考资料：各模型上下文窗口与 token 计费文档、OWASP 对提示注入和敏感信息暴露的风险说明。模型限制和价格变化很快，正式报告应记录版本和日期。</p>
+<p>需要在多家上游之间比较相同上下文的保留和裁剪行为时，可以通过 <a href="https://top-api.cc">top-api.cc</a> 统一请求格式，再把每次裁剪摘要保存为回归证据。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
