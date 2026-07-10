@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 中转站的幂等请求怎么设计：重试不能变成重复扣费和重复执行 - top-api.cc AI API Blog</title><meta name="description" content="解释 AI 网关幂等请求的设计方法，覆盖幂等键、请求指纹、重试窗口、工具副作用和账单核对。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-10</span></div><h1>AI 中转站的幂等请求怎么设计：重试不能变成重复扣费和重复执行</h1><p class="summary">AI API 遇到超时后直接重试，可能造成重复计费、重复写入或工具动作执行两次。幂等键、请求指纹、保留时间和副作用确认必须一起设计，不能只在客户端拼一个随机字符串。</p><div class="content"><p>超时并不等于上游没有处理请求。客户端可能已经发出请求，上游也已经扣费，只是响应没有及时回来。如果网关收到超时就重新发送，最终可能得到两次模型调用、两次账单，甚至把“创建订单”“发邮件”这样的工具动作执行两遍。</p>
+<h2>幂等键不是随便生成的 request_id</h2>
+<p>一个可用的幂等键必须代表“同一次业务意图”，而不是每次网络重试都重新生成。网关可以要求客户端传入业务键，也可以根据租户、会话、动作编号和请求版本生成。键需要绑定模型、工具参数和关键请求选项，避免同一个键被错误复用于完全不同的任务。</p>
+<p>服务端要保存幂等键的状态：处理中、已完成、已失败但可重试、结果未知。遇到相同键时，不能简单返回“重复请求”，而应根据状态返回原结果、告知仍在处理，或要求人工确认。保存时间也要和客户端可能的重试窗口匹配，太短会留下重复执行的空档，太长则会阻塞合法的新任务。</p>
+<h2>把请求重试和工具重试分开</h2>
+<p>纯文本生成通常可以在明确失败后重试，但工具调用要看副作用。查询、读取和校验类工具可以通过相同幂等键安全重放；写入、删除、付款和发送类工具必须由工具服务自己提供幂等约束，不能把责任全部推给 AI 网关。</p>
+<p>一个实用做法是把模型响应中的工具调用先放入“待执行”状态。工具执行器检查动作键、租户和权限后再提交；提交结果写回后，重复请求只返回原执行结果。对“响应已丢失”的情况，网关还需要提供状态查询接口，让客户端先查结果，再决定是否重试。</p>
+<h2>测评时故意制造不确定性</h2>
+<p>测试不能只模拟明确的 500。还要制造这些情况：上游已经接收但网关读不到响应、响应在工具调用后断开、客户端在超时后立刻重试、队列重复投递、数据库写入成功但回包失败。每种场景都要对照调用次数、上游账单、工具执行记录和客户端最终状态。</p>
+<p>在统一入口上做多供应商测试时，可以让 <a href="https://top-api.cc">top-api.cc</a> 负责鉴权、路由和调用记录，再把幂等键贯穿网关、队列和业务服务。这样能区分“同一个业务请求切换了上游”与“同一个请求被重复提交”这两类问题。</p>
+<h2>最小实现清单</h2>
+<ul>
+<li>幂等键由业务意图生成，重试不改变；</li>
+<li>记录处理中、完成、失败和结果未知四种状态；</li>
+<li>对工具副作用使用工具侧幂等键；</li>
+<li>保存原始响应摘要和账单关联 ID；</li>
+<li>设置明确的幂等键过期时间；</li>
+<li>给客户端提供查询未知结果的接口；</li>
+<li>日志中隔离租户、密钥和敏感参数。</li>
+</ul>
+<p>幂等设计的目标不是让所有请求都可以无限重试，而是让系统在“不知道上游到底做没做”的时候仍然能收敛到一个可解释状态。只要业务动作可能产生费用或副作用，就应把幂等当成网关的基本能力，而不是出了重复扣费再补数据库脚本。</p>
+<p>参考资料：HTTP 方法幂等语义、主流支付 API 的 Idempotency-Key 设计，以及 Portkey Gateway 的重试配置说明。实际字段以目标供应商 API 为准。</p>
+<p>如果需要先统一不同上游的鉴权、路由和账单关联，再逐步补齐幂等策略，可在 <a href="https://top-api.cc">top-api.cc</a> 上用低风险查询和测试模型验证完整链路。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
