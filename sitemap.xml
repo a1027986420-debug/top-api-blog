@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-10</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/0813ejao.html</loc>
@@ -310,42 +310,82 @@
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/agent-identity-governance-20260709.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-10</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/knowledge-connector-permissions-review-20260709.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-10</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-webhook-replay-protection-20260709.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-10</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-eval-dataset-governance-20260709.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-10</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/tool-catalog-lifecycle-20260709.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-10</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-batch-job-kill-switches-20260709.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-10</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/synthetic-monitoring-ai-apis-20260709.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-10</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/generated-file-custody-chain-20260709.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-10</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/cross-vendor-safety-policy-review-20260709.html</loc>
-    <lastmod>2026-07-09</lastmod>
+    <lastmod>2026-07-10</lastmod>
   </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-regression-baseline-design-20260709.html</loc>
     <lastmod>2026-07-09</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-streaming-api-reliability-test-20260710.html</loc>
+    <lastmod>2026-07-10</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-gateway-idempotency-retry-safety-20260710.html</loc>
+    <lastmod>2026-07-10</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-gateway-opentelemetry-tracing-guide-20260710.html</loc>
+    <lastmod>2026-07-10</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/llm-red-team-tools-garak-promptfoo-review-20260710.html</loc>
+    <lastmod>2026-07-10</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-tool-citation-evidence-quality-test-20260710.html</loc>
+    <lastmod>2026-07-10</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/embedding-api-evaluation-recall-cost-isolation-20260710.html</loc>
+    <lastmod>2026-07-10</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/long-context-truncation-risk-ai-model-test-20260710.html</loc>
+    <lastmod>2026-07-10</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-generated-file-security-scan-download-policy-20260710.html</loc>
+    <lastmod>2026-07-10</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-tool-call-dry-run-preview-mode-20260710.html</loc>
+    <lastmod>2026-07-10</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/openai-compatible-api-behavior-compatibility-test-20260710.html</loc>
+    <lastmod>2026-07-10</lastmod>
   </url>
 </urlset>
