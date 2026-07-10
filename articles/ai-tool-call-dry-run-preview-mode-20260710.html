@@ -1,0 +1,22 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 工具调用为什么要有预演模式：先看变更，再决定是否真正执行 - top-api.cc AI API Blog</title><meta name="description" content="介绍 AI Agent 工具调用的预演模式设计，覆盖参数展示、影响范围、风险分级、审批和提交后的回执。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-10</span></div><h1>AI 工具调用为什么要有预演模式：先看变更，再决定是否真正执行</h1><p class="summary">让 Agent 直接执行工具动作会放大误解和权限风险。预演模式可以先展示参数、影响范围、预计变更和风险等级，再由用户或策略引擎决定是否提交。</p><div class="content"><p>AI Agent 最容易让用户不安的不是它不会回答，而是它可能在用户还没看清参数时就执行了动作。删除文件、修改配置、创建资源或发送消息，都应该把“计划做什么”和“已经做了什么”分成两个阶段。预演模式就是在真正提交前生成一份可审查的变更计划。</p>
+<h2>预演结果要具体到参数和影响范围</h2>
+<p>一个合格的预演结果至少包含工具名、调用参数、目标资源、预计影响、风险等级、所需权限和过期时间。对于更新动作，最好展示差异；对于批量动作，展示数量、筛选条件和示例。只显示一句“即将执行操作”没有帮助，用户无法判断 Agent 是否理解正确。</p>
+<h2>风险分级决定谁能提交</h2>
+<p>读取、搜索和计算类动作可以自动执行；写入、外发和权限变化类动作需要确认；删除、付款、生产发布和跨租户操作应进入更严格的审批。风险级别不能只由工具名称决定，还要结合参数、目标环境、资源数量和用户身份。</p>
+<p>预演结果应有短时效。用户确认后，系统再次检查参数哈希、权限和资源状态，避免“先预览、后被别人修改、仍按旧计划提交”。如果状态已经变化，应让用户重新确认，而不是静默套用旧计划。</p>
+<h2>网关和工具服务各负其责</h2>
+<p>网关可以统一记录请求、模型、工具名、参数摘要和审批结果，但真正的权限校验必须在工具服务侧完成。工具服务要拒绝客户端伪造的“已审批”字段，并对提交动作提供幂等键和结果查询。对于多模型场景，应该把同一份工具 schema 和风险策略应用到不同上游。</p>
+<p>使用 <a href="https://top-api.cc">top-api.cc</a> 作为统一调用入口时，可以先把模型输出的工具调用转成待确认事件，再由业务系统提交。这样既能比较不同模型的调用意图，也能避免某个供应商的 SDK 默认行为绕过审批。</p>
+<h2>测评预演模式的六个问题</h2>
+<ul>
+<li>预演是否展示真实的目标和影响范围；</li>
+<li>参数被修改后是否要求重新确认；</li>
+<li>模型切换后风险级别是否仍然生效；</li>
+<li>审批人是否能看到足够的上下文但不接触多余隐私；</li>
+<li>提交失败或部分成功时是否有明确回执；</li>
+<li>重复提交是否会重复产生副作用。</li>
+</ul>
+<p>预演模式不是给 Agent 加一层漂亮的确认弹窗，而是把意图、授权、提交和结果拆成可审计的状态机。高风险工具宁愿多一次确认，也不要把用户只能事后发现的动作当成“自动化效率”。</p>
+<p>参考资料：OWASP 对过度代理权限和不安全工具调用的风险说明，以及各 Agent 框架关于 human-in-the-loop 的公开文档。产品实现仍需结合自己的权限模型。</p>
+<p>如果要在不同模型之间对比工具调用的风险，可以通过 <a href="https://top-api.cc">top-api.cc</a> 固定 schema 和策略，把模型差异留在意图生成层，把最终提交留在业务审批层。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
