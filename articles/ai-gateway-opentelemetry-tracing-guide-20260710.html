@@ -1,0 +1,22 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 网关接入 OpenTelemetry 要记什么：把模型调用变成可追踪的链路 - top-api.cc AI API Blog</title><meta name="description" content="给出 AI 网关接入 OpenTelemetry 的字段设计与隐私边界，帮助定位延迟、路由、token 和供应商错误。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-10</span></div><h1>AI 网关接入 OpenTelemetry 要记什么：把模型调用变成可追踪的链路</h1><p class="summary">AI 调用的问题常常跨越应用、网关、队列和供应商。接入 OpenTelemetry 时，应优先统一 trace、模型、路由、token、延迟和错误字段，同时避免把完整提示词和用户数据直接写进遥测系统。</p><div class="content"><p>AI 应用的慢请求通常不是单点故障：用户请求先经过 Web 服务，再进入 Agent、工具、队列和模型网关，最后才到供应商。如果每一层只写一行“调用失败”，排查时就不知道延迟发生在哪里，也无法判断是路由策略、网络还是模型本身造成的。</p>
+<h2>一条模型调用至少要有三层信息</h2>
+<p>第一层是链路关联信息：trace_id、span_id、父级 span、租户或项目的内部标识，以及请求开始和结束时间。第二层是模型信息：供应商、模型名、模型版本或别名、路由决策和是否发生回退。第三层是结果信息：输入和输出 token、首字节时间、总延迟、状态、结束原因、重试次数和错误分类。</p>
+<p>这些字段应尽量使用稳定的枚举和内部 ID。不要把完整提示词、文件内容、API Key 或用户邮箱直接当成 span 属性。需要排障时，可以保存经过脱敏的摘要、版本号或内容哈希，再通过受控的日志系统查询原始证据。</p>
+<h2>不要把 token 当成唯一成本指标</h2>
+<p>token 数量是重要的资源指标，但它不能解释所有成本。图像、音频、工具调用、缓存命中和供应商计费规则可能使用不同单位。网关可以同时记录 usage 原值、内部成本估算、计费版本和报价表版本，并在账单对账时标记“估算”和“已确认”两种状态。</p>
+<p>延迟也要拆开：排队时间、鉴权时间、上游连接时间、首字节时间、生成时间和后处理时间。对于流式请求，平均延迟常常掩盖长尾，至少要看 P50、P95 和 P99。对失败请求，记录最后一个协议事件和是否已经产生 token，比单个 500 状态码更有用。</p>
+<h2>让网关成为统一观测边界</h2>
+<p>如果每个应用自己接入不同厂商 SDK，字段很快会失控。把 <a href="https://top-api.cc">top-api.cc</a> 这类中转入口作为统一边界，可以在不改动业务代码的情况下补充路由、模型、成本和重试字段。应用只需要传递业务 trace 和项目标识，网关负责把上游响应映射到统一的内部事件。</p>
+<p>但统一入口不等于无限采集。建议按租户和环境设置采样率，开发环境可保存更多调试信息，生产环境只保留必要摘要。对高风险工具调用，增加审批结果、执行状态和回滚标识；对普通文本请求，则不必保存完整内容。</p>
+<h2>落地顺序</h2>
+<ol>
+<li>先统一 trace 传播和请求状态；</li>
+<li>再增加模型、路由、延迟和 token 字段；</li>
+<li>通过错误分类区分限流、超时、拒答和协议错误；</li>
+<li>把遥测数据与账单、发布版本和回放样本关联；</li>
+<li>最后再决定哪些脱敏片段值得保留。</li>
+</ol>
+<p>OpenTelemetry 的价值在于可移植的链路基础，而不是替代所有 AI 专用指标。接入前先明确谁能看原始内容、保留多久、如何删除，避免为了“可观测”把敏感数据复制到更多系统。</p>
+<p>参考资料：OpenTelemetry Semantic Conventions 的 GenAI 方向、LiteLLM Proxy 与 Portkey Gateway 的观测能力说明。标准字段仍在演进，生产环境应锁定自己的字段版本。</p>
+<p>如果你的应用已经有多家模型供应商，先把请求统一经过 <a href="https://top-api.cc">top-api.cc</a>，再在网关边界上建立一套可迁移的 trace 和成本字段，通常比逐个改 SDK 更容易控制范围。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
