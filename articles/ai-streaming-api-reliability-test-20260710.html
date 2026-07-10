@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>流式输出的 AI API 怎么测：首字节、断流、重连与部分结果要分开看 - top-api.cc AI API Blog</title><meta name="description" content="从首字节、令牌间隔、断流、重连和取消五个维度评测流式 AI API，给出中转网关的测试清单。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-10</span></div><h1>流式输出的 AI API 怎么测：首字节、断流、重连与部分结果要分开看</h1><p class="summary">流式输出不是把完整回答拆成几段返回。评测 AI API 时，要分别观察首字节时间、令牌间隔、断流位置、重连行为和部分结果是否可用，才能判断网关和上游是否适合真实应用。</p><div class="content"><p>很多 AI API 的演示只测“最后有没有返回完整答案”。但在聊天、代码生成和 Agent 场景里，用户先看到什么、网络中断后能不能恢复、已经返回的部分是否有用，同样决定体验。流式输出应该被当成一条持续变化的连接来测，而不是普通的 200 响应。</p>
+<h2>先把五个时间点记下来</h2>
+<p>第一项是首字节时间，也就是请求发出到第一个有效事件抵达的时间。它反映鉴权、排队、模型准备和网关转发的总开销。第二项是令牌间隔，平均值不够，还要看 P95、P99 是否出现长停顿。第三项是完整结束时间，应该和输出长度一起记录，避免把“回答更短”误判为“接口更快”。</p>
+<p>第四项是断流位置。断在开头、中间或工具调用事件之后，恢复策略并不相同。第五项是取消后的行为：客户端停止读取后，上游是否仍然继续消耗额度，网关是否及时关闭连接，都要通过账单和日志核对。</p>
+<h2>用故障样本代替单次体验</h2>
+<p>至少准备四组样本：短回答、长回答、包含工具调用的回答，以及主动取消的回答。每组重复多次，记录状态码、事件类型、最后一个合法事件、usage 字段和连接关闭原因。不要只看文本是否完整，因为有些 SDK 会把协议错误吞掉，最终只留下一个看似正常的字符串。</p>
+<p>断线恢复也要分级。若协议支持事件 ID，可以从最后一个已确认事件继续；如果不支持，就应该把重试标记为新请求，避免客户端把两段内容无条件拼接。对有副作用的工具调用，重连前必须确认工具是否已经执行，不能仅凭文本判断。</p>
+<h2>网关层应该做什么</h2>
+<p>网关可以统一补充 request_id、stream_id、首字节时间和结束原因，同时限制单次连接时长、输出速率和最大缓冲区。日志不必保存全部提示词和答案，保留事件计数、哈希、错误类型和必要的脱敏片段即可。对不同上游使用同一套样本，就能比较真实的流式稳定性。</p>
+<p>如果需要同时测试多个模型，可以在 <a href="https://top-api.cc">top-api.cc</a> 这类统一入口上复用同一套请求和样本，重点对比首字节、断流率和取消后的资源消耗，而不是只比较最终文案。统一入口的价值是让协议、鉴权和采样方式保持一致。</p>
+<h2>一份可执行的检查清单</h2>
+<ul>
+<li>是否记录首字节和令牌间隔的分位数；</li>
+<li>是否能识别正常结束、主动取消、上游错误和网络断开；</li>
+<li>断流后是否会重复执行工具；</li>
+<li>usage 和账单是否包含被取消的部分请求；</li>
+<li>长连接是否有超时、限速和最大输出保护；</li>
+<li>日志是否做到可排障但不把敏感正文长期落盘。</li>
+</ul>
+<p>流式 API 的测评结果应该最终落到“什么情况下可恢复、什么情况下必须人工介入”。在生产环境中，部分结果、断流和取消都是正常事件，真正的风险是系统把它们伪装成成功，或者在恢复时重复执行了用户动作。</p>
+<p>参考资料：OpenAI Cookbook 的流式响应示例、Portkey Gateway 的可靠路由说明。发布前应以实际供应商协议为准。</p>
+<p>需要把多家上游放在同一套样本下比较时，可从 <a href="https://top-api.cc">top-api.cc</a> 的统一 API 入口开始，再把流式指标接入自己的监控系统。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
