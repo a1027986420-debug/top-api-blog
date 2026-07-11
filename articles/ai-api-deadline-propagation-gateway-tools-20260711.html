@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI API 的截止时间怎么传递：网关、队列、模型和工具不能各算各的超时 - top-api.cc AI API Blog</title><meta name="description" content="解释 AI API 调用链的截止时间传播，覆盖排队、模型、工具、重试、取消和资源清理。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-11</span></div><h1>AI API 的截止时间怎么传递：网关、队列、模型和工具不能各算各的超时</h1><p class="summary">每一层都设置 30 秒超时，不代表整条调用链有 30 秒预算。截止时间应从入口向队列、模型和工具传播，并为重试、排队和清理预留时间。</p><div class="content"><p>调用链最常见的超时错误是每层都写一个固定值：Web 服务 30 秒、网关 30 秒、模型 SDK 30 秒、工具服务 30 秒。实际上这些时间会叠加，用户已经超时后，后台还可能继续运行，产生无意义的 token、工具请求和队列占用。</p>
+<h2>区分 timeout 和 deadline</h2>
+<p>固定 timeout 表示“这一层最多等多久”；deadline 表示“整个业务请求必须在什么时间前结束”。入口生成截止时间后，后续服务只使用剩余预算。剩余预算不足以完成一次安全调用时，应快速失败或降级，而不是重新给每一层发一个完整的 30 秒。</p>
+<p>预算应拆成排队、连接、模型生成、工具执行、重试和清理几个部分。流式请求还要定义“首个事件必须何时到达”和“空闲间隔最长多久”，否则连接一直有少量数据也可能拖住资源。</p>
+<h2>重试要看剩余时间</h2>
+<p>重试不是默认动作。剩余时间太短时，重试只会制造另一个必然超时的请求。网关应读取上游的 Retry-After、错误类型和副作用状态，结合剩余 deadline 决定重试、切换上游、返回缓存的安全结果，还是直接结束。工具写入类动作还要先查询是否已经成功。</p>
+<p>取消也要真的传到下游。客户端断开后，网关应取消模型流和等待中的工具；无法取消的服务至少要停止结果写回，并把后台任务标成可清理状态。否则表面上请求失败，实际成本和并发仍在增长。</p>
+<p>使用 <a href="https://top-api.cc">top-api.cc</a> 统一多模型调用时，可以在入口生成 request deadline 和预算标签，让不同供应商的超时语义映射到统一内部状态。网关只能负责传播和记录，工具服务仍需尊重 deadline 并及时释放资源。</p>
+<h2>测试场景</h2>
+<ul>
+<li>队列已等待一半预算后才开始模型调用；</li>
+<li>模型首字节很快但生成长尾；</li>
+<li>工具超时后返回未知结果；</li>
+<li>上游返回 429 和 Retry-After；</li>
+<li>客户端提前断开；</li>
+<li>回退模型只剩很短的剩余时间。</li>
+</ul>
+<p>报告中应同时给出用户感知延迟、后台残留时间、实际 token、工具调用数和取消成功率。一个好的 deadline 设计会让失败更早、更可解释，也会减少“用户已经放弃但系统还在付费”的情况。</p>
+<p>参考资料：HTTP/gRPC deadline 传播实践、各模型 SDK 的 timeout 与取消文档，以及网关的重试策略说明。</p>
+<p>如果你要比较不同上游在同一时间预算下的行为，可以让 <a href="https://top-api.cc">top-api.cc</a> 统一传递 deadline，再按模型和工具阶段拆分结果。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
