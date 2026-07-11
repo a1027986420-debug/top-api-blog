@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 工具什么时候应该说“不知道”：拒答校准、覆盖率和错误自信怎么测 - top-api.cc AI API Blog</title><meta name="description" content="建立 AI 工具拒答与不确定性测评方法，比较回答覆盖率、错误自信、选择性风险和转人工策略。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-11</span></div><h1>AI 工具什么时候应该说“不知道”：拒答校准、覆盖率和错误自信怎么测</h1><p class="summary">一个看似有帮助但证据不足的答案，可能比明确说不知道更危险。测评 AI 工具时，要同时看回答覆盖率、选择性风险、错误自信和转人工/检索的触发质量。</p><div class="content"><p>很多 AI 测评只统计答对率，默认每个问题都应该得到一个答案。但在企业搜索、客服和安全分析里，证据不足时明确说“不知道”可能是正确行为。真正需要防的是模型用很肯定的语气回答错误内容，却没有提示不确定性或请求更多材料。</p>
+<h2>把回答和拒答放在同一张表</h2>
+<p>测试集要同时包含可回答、证据不足、来源冲突、超出知识范围和权限不足的问题。每条结果记录是否回答、答案是否正确、证据是否充分、置信表达是否匹配。只看覆盖率会鼓励模型尽量作答，只看拒答率又会让工具变得没有用。</p>
+<p>可以用覆盖率和选择性风险描述这种权衡：系统只回答它认为可靠的问题时，剩余回答的错误率是多少。还要单独统计“错误但语气确定”和“正确但过度保守”，这两类问题对用户的影响不同。</p>
+<h2>不确定性不能只靠一个分数</h2>
+<p>模型输出的 confidence 字段未必经过校准。更实用的是结合检索证据数量、来源一致性、工具返回状态、问题类型和多次采样差异。对于关键业务，低证据请求可以转人工、要求用户上传原文、调用另一个模型复核，或返回可核查的候选而不是单一结论。</p>
+<p>统一入口能帮助做模型对照。通过 <a href="https://top-api.cc">top-api.cc</a> 把同一问题发往不同上游，记录回答、拒答、证据和成本，再按问题类型比较，而不是把所有问题合成一个总分。回退策略也要避免把“第一个模型不知道”直接变成“第二个模型更自信地猜”。</p>
+<h2>测评样本</h2>
+<ul>
+<li>资料中明确有答案的问题；</li>
+<li>资料缺失但很像常见问题的干扰项；</li>
+<li>两个来源互相矛盾的问题；</li>
+<li>需要特定租户权限的问题；</li>
+<li>时间敏感、版本敏感的问题；</li>
+<li>用户明确要求“不确定就说明”的问题。</li>
+</ul>
+<p>好的 AI 工具不是回答最多，而是在知道、可能知道和不知道之间做出可解释区分。产品页面应让用户看到拒答原因、需要补充什么，以及是否可以发起复核，避免把安全拒答做成无信息的错误提示。</p>
+<p>参考资料：选择性预测、校准评估和 RAG 评测的公开研究，以及 OWASP 对幻觉和不当输出的风险说明。不同业务的错误成本应分别设定。</p>
+<p>如果要比较多模型在同一问题集上的保守程度和错误自信，可以用 <a href="https://top-api.cc">top-api.cc</a> 统一记录调用和回退，构建自己的拒答回归集。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
