@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI Guardrails 应该放在哪一层：输入、工具和输出的拦截策略怎么设计 - top-api.cc AI API Blog</title><meta name="description" content="梳理 AI Guardrails 在输入、模型计划、工具参数、工具结果和最终输出各阶段的部署方式与失败策略。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-11</span></div><h1>AI Guardrails 应该放在哪一层：输入、工具和输出的拦截策略怎么设计</h1><p class="summary">Guardrails 不是在回答末尾做一次关键词过滤。安全策略应分别覆盖输入、模型计划、工具参数、工具结果和最终输出，并明确失败时阻断、降级还是转人工。</p><div class="content"><p>很多团队把 Guardrails 理解成“回答生成后再检查一次”。这种做法对明显的违规词可能有效，却拦不住危险工具参数、恶意工具结果和跨租户数据。更合理的做法是把安全策略放进一次请求的多个状态转换中，并为每一层定义不同的处置动作。</p>
+<h2>五个检查点</h2>
+<p>输入层检查用户请求、附件类型、租户和权限；计划层检查模型准备执行的意图和风险等级；工具参数层检查 schema、目标资源、范围和副作用；工具结果层检查外部内容是否包含指令、敏感数据或异常大小；输出层检查最终文本、链接、代码和格式是否允许展示。</p>
+<p>不同检查点的目标不同。输入层适合做分类和速率控制，工具参数层更适合使用确定性规则，工具结果层需要标记来源和信任等级，输出层则要按 HTML、Markdown、代码或结构化 JSON 的使用场景处理。把所有逻辑塞进一个“安全模型”会让故障难以解释。</p>
+<h2>先决定失败时怎么办</h2>
+<p>高风险动作应 fail-closed：无法确认权限或策略时不执行。低风险文本可以降级为说明、要求补充信息或转人工。对外部服务暂时不可用的情况，不要让策略层自动变成放行状态。每次阻断都应记录规则版本、命中的阶段、最小必要摘要和用户可见的原因。</p>
+<p>NeMo Guardrails 这类开源工具强调可编程的对话护栏和流程约束，适合帮助团队把规则从提示词中分离出来。但工具不能代替权限系统，Guardrails 放行了一个动作，也不代表工具服务可以跳过最终鉴权。</p>
+<p>统一网关可以把模型、租户、工具和策略版本关联起来。使用 <a href="https://top-api.cc">top-api.cc</a> 做多模型对照时，建议固定相同的 Guardrails 版本，分别比较“模型生成意图”和“策略实际拦截”的差异，不要把策略升级后的结果误判为模型变好了。</p>
+<h2>测评要覆盖失败路径</h2>
+<ul>
+<li>输入中包含敏感信息和外部指令；</li>
+<li>模型生成合法意图但工具参数越权；</li>
+<li>工具结果带有提示注入或异常链接；</li>
+<li>策略服务超时、返回空结果或版本不匹配；</li>
+<li>同一动作在不同租户、环境和角色下结果不同；</li>
+<li>被阻断后是否泄露过多内部规则。</li>
+</ul>
+<p>Guardrails 的质量不只看拦截率，还要看误杀、延迟、可解释性和恢复路径。最好的策略是让低风险请求顺畅通过，把高风险动作停在真正有权限和副作用的边界上。</p>
+<p>参考资料：NVIDIA NeMo Guardrails、OWASP GenAI Security Project 以及各工具执行器的权限文档。规则上线前应在隔离环境回放。</p>
+<p>如果需要在多个模型和供应商之间保持同一套策略，可以从 <a href="https://top-api.cc">top-api.cc</a> 的统一请求入口开始，但工具最终权限仍应由业务服务独立校验。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
