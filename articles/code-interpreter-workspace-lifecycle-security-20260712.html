@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI Code Interpreter 怎么管工作区：临时文件、依赖安装和会话结束后的清理 - top-api.cc AI API Blog</title><meta name="description" content="从工作区生命周期、依赖安装、文件传递、网络、资源限制和清理验证 AI Code Interpreter 的安全边界。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-12</span></div><h1>AI Code Interpreter 怎么管工作区：临时文件、依赖安装和会话结束后的清理</h1><p class="summary">代码解释器的核心不是“能跑 Python”，而是临时工作区如何创建、隔离、限额、安装依赖、传递文件和在会话结束后彻底清理。</p><div class="content"><p>代码解释器让 Agent 可以处理表格、运行脚本和生成报告，但它也把文件系统、依赖管理和命令执行带进了产品。测评时只跑一个 <code>print(&quot;hello&quot;)</code> 没有意义，真正要看的是一个用户的工作区会不会影响另一个用户，文件会保存多久，安装依赖是否可控。</p>
+<h2>工作区应有明确生命周期</h2>
+<p>创建时绑定租户、项目、会话和用途；运行时限制 CPU、内存、磁盘、进程数和最长执行时间；结束后删除临时文件、环境变量、缓存和下载产物。对需要断点恢复的任务，应保存受控的结果资产，而不是把整个容器快照长期保留。</p>
+<p>文件传入和传出都要验证。上传文件要识别真实类型、限制大小和解压比；生成文件应经过扫描、权限校验和短时下载链接。日志里保留文件 ID、哈希和操作摘要即可，不应把原始数据和命令输出无限期复制到多个系统。</p>
+<h2>依赖安装是供应链入口</h2>
+<p>允许任意 <code>pip install</code> 或系统包安装，会让环境变得不可预测，也可能拉入恶意或过大的依赖。更稳妥的方式是预置允许列表、内部镜像或按任务审批的依赖集，并记录锁文件和包哈希。网络访问也要按用途限制，不能把“需要下载一个库”变成任意外联能力。</p>
+<p>E2B 等项目提供面向 Agent 的隔离执行环境，说明工作区可以作为独立服务管理。但无论采用托管还是自建方案，业务侧仍需控制谁能创建、谁能读取结果、何时销毁和如何审计。</p>
+<p>若模型调用通过 <a href="https://top-api.cc">top-api.cc</a> 统一入口，可以关联请求 ID 与工作区 ID，帮助核对模型、工具和费用；真正的文件隔离、命令授权和清理仍应由工作区服务负责。</p>
+<h2>验收测试</h2>
+<ul>
+<li>两个租户能否看到彼此临时文件或缓存；</li>
+<li>会话结束、取消和异常退出后是否清理；</li>
+<li>依赖安装是否受允许列表和哈希控制；</li>
+<li>网络、CPU、内存和磁盘是否真正限额；</li>
+<li>下载链接是否可撤销且按项目授权；</li>
+<li>重试任务会不会重复产生外部副作用。</li>
+</ul>
+<p>参考资料：E2B 项目、容器隔离与软件依赖管理文档。代码解释器适合高价值自动化，但不能因“临时容器”就忽略数据边界。</p>
+<p>使用 <a href="https://top-api.cc">top-api.cc</a> 记录模型调用后，建议把工作区审计数据保持最小化，并把敏感文件留在专用存储服务。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
