@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>翻译 API 怎么测：术语、占位符、命名实体和隐私边界比 BLEU 更实用 - top-api.cc AI API Blog</title><meta name="description" content="建立面向产品和开发文档的翻译 API 测评方法，覆盖术语、占位符、命名实体、格式、隐私和回退。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-12</span></div><h1>翻译 API 怎么测：术语、占位符、命名实体和隐私边界比 BLEU 更实用</h1><p class="summary">生产翻译的常见事故不是语法错误，而是产品术语被改写、变量被吞掉、日期单位变形或敏感内容被错误送到外部服务。翻译 API 测评要按业务文本建样本。</p><div class="content"><p>通用翻译分数可以说明模型大致读得懂文本，却很难反映产品上线会不会出错。按钮文案里的变量、支付页面的金额、技术文档的命令、法律条款中的限定条件，一旦被错误翻译，影响远大于一句普通句子的语感不自然。</p>
+<h2>测试集要包含真实格式</h2>
+<p>把样本分成 UI 文案、营销内容、技术文档、代码注释、客服对话和法律/隐私说明。每类加入占位符，例如 <code>{name}</code>、<code>%s</code>、HTML 标签、Markdown 链接、日期、货币、版本号和命令行。验收第一步不是看流畅度，而是确认这些结构没有被删除、转义错误或错位。</p>
+<p>术语库也要被单独测量。品牌名、功能名、模型名、产品套餐和受保护词应有明确的目标译法。记录模型是否保持术语、是否过度音译、是否把不应翻译的代码改成自然语言。对于中文、日文、阿拉伯文等不同书写方向和格式规则，要按语言对分别统计。</p>
+<h2>隐私和回退同样重要</h2>
+<p>翻译请求可能包含客服记录、合同片段或源代码。调用前应进行数据分类和最小化处理，明确上游是否保留内容、在哪个区域处理、失败时是否允许切换供应商。回退模型即使语言质量不错，也可能违反业务术语或数据策略。</p>
+<p>Argos Translate 等离线开源翻译工具适合对数据离开边界敏感的场景；云端 API 则通常在语言覆盖和维护上更省事。测评应把准确性、延迟、术语控制和数据处理条件放在同一张表，而不是单独比较一个基准分数。</p>
+<p>通过 <a href="https://top-api.cc">top-api.cc</a> 统一不同翻译或文本模型的调用时，可以固定术语表版本、源文本哈希和目标语言，比较实际回退结果。术语库和最终发布审核仍应在业务系统中维护。</p>
+<h2>检查清单</h2>
+<ul>
+<li>变量、标签、链接和代码是否完整保留；</li>
+<li>术语、品牌名和模型名是否符合规范；</li>
+<li>数字、日期、货币和单位是否正确本地化；</li>
+<li>不同语言对的延迟和长尾；</li>
+<li>外部服务的数据保留与区域说明；</li>
+<li>失败回退是否改变术语或隐私边界。</li>
+</ul>
+<p>参考资料：Argos Translate 项目和各翻译 API 的术语、格式保留与数据使用文档。正式发布前应由目标语言使用者抽检高影响文本。</p>
+<p>将多模型翻译纳入 <a href="https://top-api.cc">top-api.cc</a> 的调用记录后，可以更容易定位是上游、术语配置还是模板变量造成的差异。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
