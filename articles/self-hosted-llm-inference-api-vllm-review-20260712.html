@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>自托管大模型 API 怎么测：vLLM 的吞吐、显存、批处理和隔离别只看 QPS - top-api.cc AI API Blog</title><meta name="description" content="给出自托管 LLM 推理 API 的测评框架，覆盖吞吐、首 token、显存、长上下文、隔离、认证和故障恢复。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-12</span></div><h1>自托管大模型 API 怎么测：vLLM 的吞吐、显存、批处理和隔离别只看 QPS</h1><p class="summary">自托管模型服务的性能不只由单请求速度决定。并发、连续批处理、首 token、显存碎片、长上下文、租户隔离和故障恢复决定它能否成为稳定的 API 上游。</p><div class="content"><p>自托管模型常被宣传为“更便宜、更可控”，但生产上游并不是把权重加载成功就结束。不同长度的请求如何排队、连续批处理是否拖慢交互请求、显存接近上限时会发生什么、模型重启后如何恢复，都需要在 API 层验证。</p>
+<h2>单请求跑分快不等于服务稳定</h2>
+<p>至少同时测试短问答、长上下文、流式输出、工具调用格式和批量任务。记录首 token 时间、每秒 token、总完成时间、P95/P99、显存占用和拒绝率。把请求混合在一起压测，才能看出长任务是否吞掉了短请求的延迟预算。</p>
+<p>vLLM 这类高吞吐推理服务强调内存效率和批处理，但参数配置、模型量化、GPU 类型和上下文长度都会改变结果。不要把别人的 benchmark 直接套到自己的业务；同一个模型在不同提示长度、并发和输出上限下可能表现差异很大。</p>
+<h2>认证与租户边界不能省略</h2>
+<p>自托管端点仍需要 API Key、请求限额、模型白名单、审计和网络隔离。没有这些边界，内部推理服务很容易成为共享 GPU 的匿名入口。对多租户业务，还要验证缓存、队列、错误信息和 metrics 是否泄露其他项目的模型名称或使用量。</p>
+<p>可用性测试应包括 GPU 驱动异常、模型加载失败、实例滚动重启、请求取消和容量耗尽。对于无法立即恢复的模型，应让网关返回清晰的可重试状态或切换到经过批准的替代上游。</p>
+<p><a href="https://top-api.cc">top-api.cc</a> 可以将自托管和托管模型放在统一调用面，便于记录路由、成本和回退；但是否启用回退、哪些数据可离开自托管环境，应由业务策略明确决定。</p>
+<h2>测试指标</h2>
+<ul>
+<li>首 token、吞吐和 P95/P99 延迟；</li>
+<li>不同上下文长度和并发下的显存曲线；</li>
+<li>排队、拒绝和取消的错误语义；</li>
+<li>模型重启、扩缩容和配置变更恢复时间；</li>
+<li>API 认证、租户隔离和指标脱敏；</li>
+<li>每个可用 token 的基础设施成本。</li>
+</ul>
+<p>参考资料：vLLM 项目与 GPU 推理服务文档。性能结论需要标注 GPU、量化、模型快照、上下文上限和压测负载。</p>
+<p>把自托管服务接到 <a href="https://top-api.cc">top-api.cc</a> 后，建议持续比较真实业务延迟与基准结果，防止只在实验环境中表现良好。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
