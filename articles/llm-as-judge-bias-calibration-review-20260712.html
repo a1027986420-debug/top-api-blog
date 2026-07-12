@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM-as-a-Judge 怎么避免自嗨：位置偏差、评分漂移和人工校准要一起测 - top-api.cc AI API Blog</title><meta name="description" content="说明 LLM-as-a-Judge 的常见偏差与校准方法，覆盖位置偏差、长度偏好、模型偏好、人工标注和版本漂移。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-12</span></div><h1>LLM-as-a-Judge 怎么避免自嗨：位置偏差、评分漂移和人工校准要一起测</h1><p class="summary">用模型给模型打分很高效，但也容易受到答案顺序、文风长度、模型偏好和评审提示词变化影响。LLM-as-a-Judge 必须和人工样本、盲测和漂移监控一起使用。</p><div class="content"><p>让一个模型给回答打分，能把评测速度从人工小时缩短到分钟，但它不是客观裁判。评审模型可能偏爱更长、更像模板的回答，可能总是选择第一个候选，也可能对同家族模型更宽容。没有校准的评分表，很容易让团队优化到“讨好评审”而不是解决用户问题。</p>
+<h2>先做顺序和长度盲测</h2>
+<p>把 A/B 回答随机交换位置，观察胜率是否变化；把同一答案压缩或扩写，观察分数是否被长度影响。对事实问答、工具任务、写作和安全策略分别建样本，因为同一种评审提示词不适合所有任务。评分结果应保留评审版本、提示词版本、温度和原始理由摘要。</p>
+<p>人工标注不是为了替代全部自动评测，而是为了建立锚点。定期抽取有争议、低置信和高影响样本，由至少两位审阅者独立标注，再比较人机一致性和人工之间的一致性。若评审模型与人工持续偏离，应修订任务定义或换评审方法，而不是强行相信自动分数。</p>
+<h2>防止评分随时间漂移</h2>
+<p>评审模型、系统提示词、工具和数据集变化后，历史分数可能不再可比。要保留固定基准集，按版本重跑；对分数突然变化的任务检查是候选模型变了、评审模型变了，还是数据分布变了。评分理由也只能作为辅助证据，不能自动当作事实。</p>
+<p>DeepEval、PromptBench 等框架提供评测编排能力，但指标定义和人工校准仍由团队负责。工具可以让实验可重复，却不会自动消除偏见。</p>
+<p>如果需要比较多个候选模型，可在 <a href="https://top-api.cc">top-api.cc</a> 固定请求、模型参数和样本版本，再把候选输出交给独立的评审流程。不要让同一模型既生成答案又单独决定自己是否最好。</p>
+<h2>最小评测矩阵</h2>
+<ul>
+<li>A/B 位置交换后的胜率；</li>
+<li>不同长度和文风的评分变化；</li>
+<li>自动评分与人工评分的一致性；</li>
+<li>评审模型和提示词版本漂移；</li>
+<li>高风险任务的人工复核覆盖率；</li>
+<li>低置信、平分和冲突样本的处理方式。</li>
+</ul>
+<p>参考资料：DeepEval、PromptBench 的公开文档与 LLM-as-a-Judge 研究。分数是决策输入，不应替代明确的业务验收标准。</p>
+<p>在 <a href="https://top-api.cc">top-api.cc</a> 保存候选调用元数据后，可以在评审结果异常时快速回放相同样本，而不会把参数变化混入结论。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
