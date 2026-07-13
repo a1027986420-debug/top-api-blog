@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RAG 知识库更新后怎么防“幽灵答案”：删除源文件、重建向量与缓存失效要联动 - top-api.cc AI API Blog</title><meta name="description" content="源文件删除后，RAG 仍可能从向量索引、摘要缓存或旧引用中回答过期内容。本文给出删除传播、重建验证和多租户隔离的检查框架。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-13</span></div><h1>RAG 知识库更新后怎么防“幽灵答案”：删除源文件、重建向量与缓存失效要联动</h1><p class="summary">源文件删除后，RAG 仍可能从向量索引、摘要缓存或旧引用中回答过期内容。本文给出删除传播、重建验证和多租户隔离的检查框架。</p><div class="content"><p>知识库里的文档被删除、权限被收回或内容被修订后，用户仍从 AI 得到旧答案，常被误认为“模型记住了”。更常见的原因是向量索引、分段缓存、摘要、重排序结果或会话记忆没有同步失效。只删原文件不会自动清理所有派生表示。</p>
+<h2>先画出内容生命周期</h2>
+<p>一份文档从上传到回答，可能经过提取、分段、嵌入、索引、摘要、缓存和引用卡片。每一步都应带有源文档 ID、版本、租户和权限快照。删除或权限变化发生时，系统才能据此找到所有派生对象，而不是全库模糊搜索关键词。</p>
+<h2>删除与更新要区分处理</h2>
+<p>删除意味着检索和引用都不应再返回内容，必要时还要清除派生摘要；更新意味着新版本生效，同时让旧向量和缓存退役。对合规要求较高的场景，记录清理完成时间和失败重试，避免把异步任务“已提交”误当作“已清除”。</p>
+<h2>用负向检索验证而非只看队列</h2>
+<p>建立包含唯一短语的测试文档，分别测试删除、权限收回和覆盖更新。验收时不仅查询向量检索，也要让实际 RAG 问答、引用展示和会话追问都尝试命中旧内容。正确结果是明确说明资料不可用或请求重新检索，而不是编造原文的替代答案。</p>
+<h2>多租户隔离不能依赖提示词</h2>
+<p>租户 ID、文档 ACL 和索引命名空间必须在检索过滤器中强制执行。缓存键同样要包含权限上下文；否则一个有权用户生成的答案可能被无权用户命中。通过 <a href="https://top-api.cc">top-api.cc</a> 统一调用模型时，仍要在检索侧完成这些边界，模型入口不能替代数据访问控制。</p>
+<h2>上线检查表</h2>
+<ul>
+<li>每个派生对象都能追溯到源文档与版本；</li>
+<li>删除、更新、撤权有独立的失效流程与完成证据；</li>
+<li>RAG 回答、引用和会话缓存均通过负向测试；</li>
+<li>索引重建不会混入已撤销租户的数据；</li>
+<li>清理失败会告警并可安全重试。</li>
+</ul>
+<p>RAG 的新鲜度不仅决定回答质量，也决定访问控制是否真实生效。把“资料不该再出现”当作一级功能测试，远比事后解释幽灵答案可靠。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
