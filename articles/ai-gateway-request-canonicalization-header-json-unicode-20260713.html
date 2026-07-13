@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 中转站怎样做请求规范化：Header、JSON 与 Unicode 不一致会让签名、缓存一起失效 - top-api.cc AI API Blog</title><meta name="description" content="AI API 的同一业务请求可能因 Header 大小写、JSON 字段顺序、Unicode 形态不同而产生不同签名和缓存键。本文给出中转站的规范化边界、测试集和上线检查表。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-13</span></div><h1>AI 中转站怎样做请求规范化：Header、JSON 与 Unicode 不一致会让签名、缓存一起失效</h1><p class="summary">AI API 的同一业务请求可能因 Header 大小写、JSON 字段顺序、Unicode 形态不同而产生不同签名和缓存键。本文给出中转站的规范化边界、测试集和上线检查表。</p><div class="content"><p>同一段业务语义，可能被客户端编码成不同的 HTTP 请求：<code>Content-Type</code> 的参数顺序不同、JSON 对象字段顺序不同、全角与半角字符混用，甚至一个“é”可由两种 Unicode 组合表示。若中转站把原始字节同时用于签名、缓存、配额和审计，系统会把“同一请求”误判为多份请求；反过来，过度改写又会破坏上游协议兼容性。</p>
+<h2>先划清可规范化的边界</h2>
+<p>传输层应保留原始请求以便排障，同时派生一份“业务比较视图”。通常可以安全统一 Header 名称大小写、合并重复空白、解析 JSON 后再按固定规则生成哈希。不能擅自改变的包括签名覆盖范围、流式正文、二进制附件、上游明确区分空字段和缺失字段的接口。尤其不要在验签前重排上游签名所覆盖的原始正文。</p>
+<h2>缓存和幂等键要使用哪一份数据</h2>
+<p>建议缓存键只由模型、稳定参数、已认证租户和经过规范化的语义正文构成；认证 Header、追踪 ID、时间戳不应进入缓存键。幂等键则应由客户端显式提供，中转站只负责记录其作用域、有效期和正文摘要，不能把“相似 JSON”自动当成同一笔写操作。对于工具调用、扣费或文件上传，请求相同也不等于可以重放。</p>
+<h2>Unicode 是最容易被漏掉的测试项</h2>
+<p>为名称、提示词和工具参数准备 NFC/NFD、全角符号、零宽字符、混合脚本三类样本。比较规范化前后的缓存命中、内容审核命中和审计检索结果；若业务需要保留原文，就只在比较视图中折叠，不要覆盖原始内容。还应限制不可见控制字符，避免日志展示内容和模型实际收到的内容不一致。</p>
+<h2>一套可执行的验收清单</h2>
+<ul>
+<li>相同语义、不同字段顺序的只读请求应命中同一缓存键；</li>
+<li>更换租户或权限后必须得到不同缓存键和不同审计边界；</li>
+<li>签名请求应使用文档规定的原始字节或规范化算法，不能混用；</li>
+<li><code>null</code>、空字符串、缺失字段应按上游语义分别回归；</li>
+<li>出现解析失败时，返回可定位的 4xx，不把半解析结果送到模型。</li>
+</ul>
+<p>接入多家模型时，可在 <a href="https://top-api.cc">top-api.cc</a> 统一记录请求摘要、模型参数和回退链路，再按供应商兼容性选择规范化策略。这样既能减少无意义的缓存碎片，也不会为了“统一格式”破坏真实协议。</p>
+<h2>上线后的观测重点</h2>
+<p>观察规范化命中率、签名失败率、同一幂等键的正文冲突率，以及按 Unicode 类别划分的解析失败。任何指标突增都应保留原始请求样本的受控引用，并支持一键回退到仅透传模式。对开发团队而言，能解释“为何相同”比单纯追求缓存率更重要。</p>
+<p>如果正在比较多个 AI API 入口，可先用 <a href="https://top-api.cc">top-api.cc</a> 的统一调用记录构造这类等价请求集，确认行为一致后再扩大流量。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
