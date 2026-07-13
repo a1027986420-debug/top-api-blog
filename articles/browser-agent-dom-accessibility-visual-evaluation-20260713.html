@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>浏览器 Agent 工具测评怎么做：DOM、无障碍树与截图三套证据不能只信一套 - top-api.cc AI API Blog</title><meta name="description" content="浏览器 Agent 仅依赖 DOM、无障碍树或截图都会有盲点。本文给出表单填写、动态页面和关键提交动作的三证据测评框架。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-13</span></div><h1>浏览器 Agent 工具测评怎么做：DOM、无障碍树与截图三套证据不能只信一套</h1><p class="summary">浏览器 Agent 仅依赖 DOM、无障碍树或截图都会有盲点。本文给出表单填写、动态页面和关键提交动作的三证据测评框架。</p><div class="content"><p>浏览器 Agent 的失败并不总是“没找到按钮”。有些页面视觉上已变化但 DOM 尚未更新，有些自定义控件没有正确的无障碍标签，还有些网页把危险按钮伪装成普通链接。只用一种观察通道，工具可能看似完成任务，实际上填错账户、选错日期或提交了错误表单。</p>
+<h2>三套证据各解决什么问题</h2>
+<p>DOM 适合定位稳定属性和表单值；无障碍树更接近用户可理解的角色、名称和当前状态；截图或视觉模型能发现遮挡、弹窗、颜色提示和布局变化。测评时不要求三者完全一致，而是为高风险动作定义“至少两项确认”。例如提交付款前，既要读到按钮的可访问名称，也要确认截图中没有遮挡对话框。</p>
+<h2>把页面变化做成回归样本</h2>
+<p>给同一流程准备标签改名、按钮移动、延迟加载、重复元素、iframe、Cookie 弹窗和错误提示覆盖等版本。记录 Agent 的成功率、误点击率、恢复次数与人工接管点。真正有价值的不是演示环境一次跑通，而是页面改版后还能说明自己依据了什么。</p>
+<h2>高风险动作要降低自动化等级</h2>
+<p>下载、上传、发布、支付和删除不应由“看起来像成功”触发。要求 Agent 展示目标对象、变更摘要和最后一跳 URL，并保留用户确认。对于登录态切换、企业后台和多账号页面，要额外验证当前身份和工作区，避免把个人会话误用于组织操作。</p>
+<h2>测评清单</h2>
+<ul>
+<li>元素定位应优先使用稳定角色和名称，而非脆弱坐标；</li>
+<li>页面加载完成要有网络、DOM 和视觉三类等待条件；</li>
+<li>遇到多个同名控件，先展示候选项再选择；</li>
+<li>关键提交后校验业务结果，而非只检查点击事件；</li>
+<li>每个失败样本都要能重放，区分网页变化与 Agent 判断错误。</li>
+</ul>
+<p>如果团队用 <a href="https://top-api.cc">top-api.cc</a> 接入多种浏览器或模型能力，可在统一调用层记录工具版本、观察通道与确认步骤，方便横向比较模型在同一页面集上的表现。这样评估的是可靠的操作链路，而不是单次“会不会点”。</p>
+<h2>什么时候应该判定为不通过</h2>
+<p>当 Agent 无法识别当前账号、无法解释选择依据，或需要绕过页面安全确认才能继续时，应直接终止该用例并进入人工流程。可靠工具的价值是知道何时停下，而不是强行把每一步都自动化。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
