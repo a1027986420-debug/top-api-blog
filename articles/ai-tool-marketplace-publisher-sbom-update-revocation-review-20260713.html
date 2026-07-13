@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 工具市场怎么做供应链测评：发布者身份、SBOM、更新通道和撤回机制都要看 - top-api.cc AI API Blog</title><meta name="description" content="安装一个 AI 插件或工具服务器前，不能只看功能说明。本文给出发布者身份、依赖清单、更新签名、权限声明和紧急撤回的测评框架。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-13</span></div><h1>AI 工具市场怎么做供应链测评：发布者身份、SBOM、更新通道和撤回机制都要看</h1><p class="summary">安装一个 AI 插件或工具服务器前，不能只看功能说明。本文给出发布者身份、依赖清单、更新签名、权限声明和紧急撤回的测评框架。</p><div class="content"><p>AI 工具市场让 Agent 更容易接入搜索、文档、工单和代码服务，但“能安装”不等于“可托管”。一个插件可能在首次安装时权限很少，后续更新却引入新的远程依赖或扩大网络访问范围。评估工具生态时，功能页只是入口，真正需要检查的是身份、构建物与变更路径。</p>
+<h2>发布者身份要能持续验证</h2>
+<p>确认组织身份、代码仓库、发行包和文档域名之间是否可对应。个人账号、镜像仓库和转售包不一定有问题，但应被标记为不同信任等级。不要只依赖名称相似或图标；对生产工具应使用已验证发布者、固定版本和可追踪的公告渠道。</p>
+<h2>SBOM 解决“里面到底装了什么”</h2>
+<p>软件物料清单应列出直接依赖、关键传递依赖、许可证和已知组件版本。对 AI 工具还要扩展记录外部服务端点、容器镜像、模型下载来源和运行时权限。SBOM 不能自动证明安全，但能在漏洞、下架或供应商变更时迅速定位受影响安装。</p>
+<h2>更新是高风险事件，不是维护细节</h2>
+<p>升级前比较权限声明、网络目标、命令入口和数据导出行为；升级后在隔离环境运行回归用例。市场应支持版本固定、变更摘要、签名校验和紧急撤回。若工具被撤回，中转站需要阻止新会话调用，并为已运行任务提供暂停或人工复核策略。</p>
+<h2>把工具安装纳入统一治理</h2>
+<p>在 <a href="https://top-api.cc">top-api.cc</a> 这类统一接入层登记工具版本、Owner、授权范围和使用租户，可以让安全、采购和开发看到同一份事实。不要让每个 Agent 私自拉取最新版本，也不要把“自动更新”默认授予有写权限的工具。</p>
+<h2>测评清单</h2>
+<ul>
+<li>发布者、源码、发行包与签名链条可验证；</li>
+<li>有可读的依赖和外部端点清单；</li>
+<li>新版本权限变化需要显式审批；</li>
+<li>支持固定版本、回滚和紧急禁用；</li>
+<li>安装后以最小权限运行，并记录实际调用行为。</li>
+</ul>
+<p>工具市场的速度很重要，但可追溯、可撤回、可比较的供应链信息，才是把实验性能力带入生产的前提。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
