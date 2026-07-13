@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MCP OAuth 接入怎么验：资源服务器发现、令牌受众与中转站代传不能混为一谈 - top-api.cc AI API Blog</title><meta name="description" content="MCP 工具接入 OAuth 时，客户端发现、资源服务器标识、令牌受众和代传链路任一错位都可能导致越权。本文整理可测试的中转站接入检查项。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-13</span></div><h1>MCP OAuth 接入怎么验：资源服务器发现、令牌受众与中转站代传不能混为一谈</h1><p class="summary">MCP 工具接入 OAuth 时，客户端发现、资源服务器标识、令牌受众和代传链路任一错位都可能导致越权。本文整理可测试的中转站接入检查项。</p><div class="content"><p>MCP 工具开始接入 OAuth 后，最常见的错误不是“没有登录”，而是把不同角色混成一个概念：谁是客户端、谁是资源服务器、令牌到底发给谁、AI 中转站是否只是转发者。若拿到一个能用的 bearer token 就原样转给所有工具，后续很难收回权限，也无法证明请求只访问了被授权的资源。</p>
+<h2>先把四个对象写进接入图</h2>
+<p>客户端代表用户发起授权；授权服务器签发令牌；资源服务器验证令牌并保护工具或数据；中转站负责会话关联、策略判断和安全转发。中转站即使能看见令牌，也不应默认成为令牌的受众。每条工具连接都要记录资源标识、所需 scope、过期时间、授权主体和撤销入口。</p>
+<h2>测试令牌“能用但不该用”的场景</h2>
+<p>准备至少五组负面用例：错误 audience、缺少 scope、过期令牌、从另一租户复制的令牌、重定向到同域不同路径的资源。正确结果不是统一返回 500，而是资源端拒绝、审计可定位，并且中转站不在日志中保存原始 bearer 值。若工具需要代表用户访问第三方 API，优先使用短时、面向具体资源的令牌，而不是长期万能密钥。</p>
+<h2>中转站的代传策略</h2>
+<p>代传时应建立“调用者—工具—资源—授权记录”的绑定。工具声明变化、scope 扩张或资源 URL 改变时，要求重新确认。不要根据工具名称猜测权限，更不能把一个高权限连接自动复用到同名测试环境。对于后台任务，还要规定令牌过期后的行为：停止、提示重新授权，或使用明确审批过的服务身份。</p>
+<h2>上线检查表</h2>
+<ul>
+<li>能从可信元数据发现授权与资源端点，并校验 issuer；</li>
+<li>audience 与实际资源严格匹配，拒绝模糊前缀比较；</li>
+<li>scope 按读、写、删除和管理动作拆分；</li>
+<li>授权撤销后，新请求立即失效，缓存连接不得继续使用；</li>
+<li>审计记录令牌指纹、主体和范围，不记录完整令牌。</li>
+</ul>
+<p>把不同 MCP 服务纳入 <a href="https://top-api.cc">top-api.cc</a> 的统一入口时，可将授权上下文与模型请求分开保存，方便查看每次工具调用究竟代表谁、访问了什么。这个边界能减少“模型换了，权限却还在”的隐蔽问题。</p>
+<h2>复盘时别只看授权成功率</h2>
+<p>还要统计 audience 拒绝、scope 不足、撤销生效延迟和重复授权率。授权成功率很高并不表示配置正确；如果所有请求都靠一个宽泛令牌通过，反而说明最小权限没有落地。用小范围灰度和可撤销连接先验证，再扩大到生产工具。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
