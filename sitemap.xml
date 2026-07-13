@@ -391,81 +391,121 @@
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-agent-loop-detection-state-stasis-20260711.html</loc>
     <lastmod>2026-07-11</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/realtime-voice-ai-agent-evaluation-20260711.html</loc>
     <lastmod>2026-07-11</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/document-parsing-ai-tools-docling-markitdown-review-20260711.html</loc>
     <lastmod>2026-07-11</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-guardrails-input-tool-output-policy-design-20260711.html</loc>
     <lastmod>2026-07-11</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-agent-checkpoint-resume-task-state-20260711.html</loc>
     <lastmod>2026-07-11</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-api-deadline-propagation-gateway-tools-20260711.html</loc>
     <lastmod>2026-07-11</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-gateway-tenant-fairness-noisy-neighbor-20260711.html</loc>
     <lastmod>2026-07-11</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/prompt-supply-chain-integrity-version-control-20260711.html</loc>
     <lastmod>2026-07-11</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-tool-abstention-calibration-coverage-risk-20260711.html</loc>
     <lastmod>2026-07-11</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-output-injection-markdown-html-csv-json-security-20260711.html</loc>
     <lastmod>2026-07-11</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/image-generation-api-evaluation-consistency-20260712.html</loc>
     <lastmod>2026-07-12</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/video-generation-api-async-job-review-20260712.html</loc>
     <lastmod>2026-07-12</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/translation-api-terminology-placeholder-test-20260712.html</loc>
     <lastmod>2026-07-12</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/llm-as-judge-bias-calibration-review-20260712.html</loc>
     <lastmod>2026-07-12</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/code-interpreter-workspace-lifecycle-security-20260712.html</loc>
     <lastmod>2026-07-12</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/self-hosted-llm-inference-api-vllm-review-20260712.html</loc>
     <lastmod>2026-07-12</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/llm-reproducibility-seed-snapshot-config-20260712.html</loc>
     <lastmod>2026-07-12</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/multilingual-ai-policy-localization-testing-20260712.html</loc>
     <lastmod>2026-07-12</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-media-exif-watermark-signed-url-governance-20260712.html</loc>
     <lastmod>2026-07-12</lastmod>
-  </url
+  </url>
   <url>
     <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-coding-dependency-hallucination-typosquatting-20260712.html</loc>
     <lastmod>2026-07-12</lastmod>
-  </url
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-gateway-request-canonicalization-header-json-unicode-20260713.html</loc>
+    <lastmod>2026-07-13</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/mcp-oauth-resource-server-token-audience-gateway-review-20260713.html</loc>
+    <lastmod>2026-07-13</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/browser-agent-dom-accessibility-visual-evaluation-20260713.html</loc>
+    <lastmod>2026-07-13</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/speech-to-text-api-timestamp-diarization-privacy-review-20260713.html</loc>
+    <lastmod>2026-07-13</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/structured-outputs-schema-evolution-backward-compatibility-20260713.html</loc>
+    <lastmod>2026-07-13</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-agent-dns-rebinding-private-ip-redirect-security-test-20260713.html</loc>
+    <lastmod>2026-07-13</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/multimodal-upload-resumable-checksum-expiring-url-api-review-20260713.html</loc>
+    <lastmod>2026-07-13</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-tool-marketplace-publisher-sbom-update-revocation-review-20260713.html</loc>
+    <lastmod>2026-07-13</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/ai-agent-connector-offboarding-oauth-revocation-checklist-20260713.html</loc>
+    <lastmod>2026-07-13</lastmod>
+  </url>
+  <url>
+    <loc>https://a1027986420-debug.github.io/top-api-blog/articles/rag-source-deletion-vector-index-cache-invalidation-review-20260713.html</loc>
+    <lastmod>2026-07-13</lastmod>
+  </url>
 </urlset>
