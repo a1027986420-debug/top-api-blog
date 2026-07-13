@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI Agent 出网安全怎么测 DNS 重绑定：域名白名单、私网地址和重定向缺一不可 - top-api.cc AI API Blog</title><meta name="description" content="只做域名白名单不足以保护 AI Agent 的网页和工具访问。本文说明 DNS 重绑定、私网 IP、IPv6、重定向和解析缓存的防护测试方法。"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.hero h1{font-size:34px;margin:0 0 12px}.hero p{color:#6b7280}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;flex-wrap:wrap;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.content h3{font-size:22px;margin:1.45em 0 .65em}.content pre{overflow:auto;border-radius:8px;background:#111827;color:#f9fafb;padding:16px}.content code{border-radius:4px;background:#f3f4f6;padding:2px 5px}.content pre code{background:transparent;padding:0;color:inherit}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="/top-api-blog/">Back to archive</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-13</span></div><h1>AI Agent 出网安全怎么测 DNS 重绑定：域名白名单、私网地址和重定向缺一不可</h1><p class="summary">只做域名白名单不足以保护 AI Agent 的网页和工具访问。本文说明 DNS 重绑定、私网 IP、IPv6、重定向和解析缓存的防护测试方法。</p><div class="content"><p>给 AI Agent 配置域名白名单是正确的第一步，但它不能自动防住 DNS 重绑定：初次解析指向公网地址，连接或重定向时再指向内网地址。若浏览器、下载器或自定义工具的校验点不一致，Agent 可能在“允许的域名”名义下访问到不应接触的服务。</p>
+<h2>把校验放在实际连接之前</h2>
+<p>安全策略不能只检查用户输入的 URL 字符串。解析域名后，应检查最终连接 IP 是否属于回环、链路本地、私有地址、保留地址或云元数据地址范围；每次重定向和重新解析都重复检查。IPv4、IPv6、整数形式 IP、混合大小写主机名和尾随点域名都要进入测试集。</p>
+<h2>白名单应该表达什么</h2>
+<p>优先按精确主机名与端口建立允许规则，并限制协议为 HTTPS。通配符要审慎，<code>*.example.com</code> 可能包含用户可控子域名。对下载、大文件请求和 webhook 回调还要设置独立的目标、大小和方法规则，避免把“可读取网页”误扩大成“可向任意地址 POST”。</p>
+<h2>DNS 重绑定的回归用例</h2>
+<p>在隔离测试环境中准备会变更解析结果的域名，验证首次解析、连接前复核、长连接重新建连和 30x 跳转都被拒绝。日志应记录域名、解析后的地址类别、规则命中和请求 ID，但不记录密钥、完整提示词或内部响应内容。不要用生产内网服务作为测试目标。</p>
+<h2>中转站如何协助治理</h2>
+<p>将工具调用统一经由 <a href="https://top-api.cc">top-api.cc</a> 这类入口时，可把不同 Agent 的出网策略、DNS 决策和拒绝原因集中审计，并为不同租户配置独立策略。中转站负责策略执行与可观测性，业务工具仍应保留自己的输入校验，不能把所有防线押在单一层。</p>
+<h2>验收清单</h2>
+<ul>
+<li>连接前、重定向后、重试前都验证最终 IP；</li>
+<li>禁止私网、回环、链路本地和云元数据地址；</li>
+<li>限制协议、端口、方法、响应大小与下载类型；</li>
+<li>DNS 解析缓存设置明确 TTL，异常变更可告警；</li>
+<li>拒绝结果可解释且不泄露网络拓扑。</li>
+</ul>
+<p>真正可靠的出网控制不是“能访问哪些域名”的静态表，而是从输入到最终 socket 连接都保持一致的策略执行。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
