@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>长对话 API 怎么控成本又不丢事实：摘要、滑动窗口与上下文压缩测评</title><meta name="description" content="上下文压缩不是简单截断；需要同时测成本、事实保留、指令优先级和工具状态完整性。">
+<style>body{max-width:860px;margin:48px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.8;color:#172033} article{background:#fff} h1{line-height:1.35} h2{margin-top:2em} a{color:#2563eb}</style></head>
+<body><article>
+<h1>长对话 API 怎么控成本又不丢事实：摘要、滑动窗口与上下文压缩测评</h1>
+<p><em>上下文压缩不是简单截断；需要同时测成本、事实保留、指令优先级和工具状态完整性。</em></p>
+<p>本文面向正在接入多模型、AI Agent 与工具调用的开发团队，给出可操作的验收思路。所有测评应在自己的授权环境中进行，并保留可复核的测试记录。</p>
+<h2>先定义什么信息绝不能丢</h2><p>用户偏好、未完成任务、工具返回的关键 ID、安全约束和最新决策通常比闲聊更重要。压缩策略应把这些信息作为结构化状态保存，不能只依赖自然语言摘要。</p>
+<h2>比较三种常见策略</h2><p>滑动窗口实现简单但容易截掉早期约束；摘要能省 token 但可能改写事实；分层记忆把状态和原文分开，工程成本更高。应在相同对话集上比较输入 token、答案正确率和关键事实召回。</p>
+<h2>工具调用状态要单独处理</h2><p>支付、工单或文件操作产生的 ID 不能被摘要器随意合并。测试中插入相近但不同的编号、撤销操作和多轮澄清，观察压缩后是否仍引用正确对象。</p>
+<h2>用成本曲线决定阈值</h2><p>不要按照固定轮数压缩。根据模型价格、平均会话长度、延迟目标和错误成本绘制曲线，再设定触发阈值；通过统一 API 入口记录这些数据会更容易比较不同模型。</p>
+<h2>结语</h2>
+<p>好的 AI API 测评不是一次性打分，而是把风险点转化为可重复执行的检查。先验证边界条件，再逐步扩大流量，才能兼顾体验、成本和可追溯性。</p>
+</article><p><a href="../index.html">返回文章列表</a></p></body></html>

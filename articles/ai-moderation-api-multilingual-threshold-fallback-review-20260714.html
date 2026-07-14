@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>内容审核 API 怎么测：多语言阈值、人工复核与故障降级比命中率更重要</title><meta name="description" content="审核 API 的价值不在于单一准确率，而在于不同语言、不同场景下的阈值解释和可复核流程。">
+<style>body{max-width:860px;margin:48px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.8;color:#172033} article{background:#fff} h1{line-height:1.35} h2{margin-top:2em} a{color:#2563eb}</style></head>
+<body><article>
+<h1>内容审核 API 怎么测：多语言阈值、人工复核与故障降级比命中率更重要</h1>
+<p><em>审核 API 的价值不在于单一准确率，而在于不同语言、不同场景下的阈值解释和可复核流程。</em></p>
+<p>本文面向正在接入多模型、AI Agent 与工具调用的开发团队，给出可操作的验收思路。所有测评应在自己的授权环境中进行，并保留可复核的测试记录。</p>
+<h2>先定义审核动作，而不是只看标签</h2><p>同一类别分数在不同业务中可以对应放行、限速、人工复核或拒绝。测试方案应为每个动作定义可解释阈值和申诉路径，避免把模型标签直接当作最终业务判决。</p>
+<h2>多语言与语境必须单独抽样</h2><p>中文缩写、拼音、混合语句、代码块和引用内容往往会改变判定。建立按语言、业务场景与内容长度分层的样本集，分别统计误杀和漏放；不要用英文基准的分数直接套到中文产品。</p>
+<h2>人工复核需要保存最少但足够的证据</h2><p>复核页面应展示原始片段、模型版本、策略版本、触发规则和时间，而不是只显示一个风险分。保存周期应与隐私政策对齐，并将访问权限限制在必要岗位。</p>
+<h2>故障时不要静默失明</h2><p>审核服务超时或不可用时，系统应按内容类型采取明确的降级策略，并产生告警。压测中模拟超时、空响应和分数格式变化，确认业务不会在无提示的情况下全面放行或全面拦截。</p>
+<h2>结语</h2>
+<p>好的 AI API 测评不是一次性打分，而是把风险点转化为可重复执行的检查。先验证边界条件，再逐步扩大流量，才能兼顾体验、成本和可追溯性。</p>
+</article><p><a href="../index.html">返回文章列表</a></p></body></html>

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI API 故障切换怎么测：对冲请求、首包门限、重复费用与质量回归</title><meta name="description" content="更快地切到备用模型不一定更可靠；对冲请求必须同时验证重复成本、取消语义和输出质量。">
+<style>body{max-width:860px;margin:48px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.8;color:#172033} article{background:#fff} h1{line-height:1.35} h2{margin-top:2em} a{color:#2563eb}</style></head>
+<body><article>
+<h1>AI API 故障切换怎么测：对冲请求、首包门限、重复费用与质量回归</h1>
+<p><em>更快地切到备用模型不一定更可靠；对冲请求必须同时验证重复成本、取消语义和输出质量。</em></p>
+<p>本文面向正在接入多模型、AI Agent 与工具调用的开发团队，给出可操作的验收思路。所有测评应在自己的授权环境中进行，并保留可复核的测试记录。</p>
+<h2>对冲请求适合少数高价值场景</h2><p>当首包延迟超过门限时，同时向备用路径发出请求可以降低长尾延迟。但它会增加调用量，也可能让同一工具操作执行两次，因此不能默认对所有请求开启。</p>
+<h2>取消语义决定是否会双花</h2><p>主路径先返回后，备用请求是否会收到取消？上游是否仍计费？流式响应已输出部分文本时如何选择结果？测试必须记录两个请求的生命周期和账单事件，而不是只看用户端的最终首包。</p>
+<h2>备用模型还要做质量回归</h2><p>不同模型在结构化输出、函数调用和安全策略上可能不兼容。为关键任务准备固定评测集，比较主备路径的 schema 通过率、工具参数正确率和人工偏好，避免“更快但不可用”。</p>
+<h2>网关应给出可审计的决定</h2><p>记录触发门限、选中的上游、取消结果、花费和模型版本。中转站的价值在于把这些决策与用量放到同一视图中，而不是隐藏真实的失败与重试。</p>
+<h2>结语</h2>
+<p>好的 AI API 测评不是一次性打分，而是把风险点转化为可重复执行的检查。先验证边界条件，再逐步扩大流量，才能兼顾体验、成本和可追溯性。</p>
+</article><p><a href="../index.html">返回文章列表</a></p></body></html>

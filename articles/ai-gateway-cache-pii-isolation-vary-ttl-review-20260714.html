@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 中转站缓存怎么避免串数据：缓存键、Vary、TTL 与逐租户隔离测评</title><meta name="description" content="缓存能降低 AI API 成本，但错误的缓存键会把上下文、身份和敏感输出交给错误的用户。">
+<style>body{max-width:860px;margin:48px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.8;color:#172033} article{background:#fff} h1{line-height:1.35} h2{margin-top:2em} a{color:#2563eb}</style></head>
+<body><article>
+<h1>AI 中转站缓存怎么避免串数据：缓存键、Vary、TTL 与逐租户隔离测评</h1>
+<p><em>缓存能降低 AI API 成本，但错误的缓存键会把上下文、身份和敏感输出交给错误的用户。</em></p>
+<p>本文面向正在接入多模型、AI Agent 与工具调用的开发团队，给出可操作的验收思路。所有测评应在自己的授权环境中进行，并保留可复核的测试记录。</p>
+<h2>缓存命中率不是唯一指标</h2><p>对文本生成、Embedding 和工具结果做缓存，能够减少重复调用；但只按提示词哈希缓存，极易忽略模型版本、系统提示、温度、工具权限和租户身份。命中率越高，错误复用造成的影响也可能越大。</p>
+<h2>把身份与上下文纳入缓存键</h2><p>设计缓存键时，应至少包含租户、模型快照、关键参数、系统策略版本和授权范围。对带有个人信息的请求，默认禁用共享缓存或使用短 TTL 的私有缓存；不要把 Authorization 原文写入键或日志。</p>
+<h2>用 Vary 思维检查网关</h2><p>HTTP 的 Vary 概念适合迁移到 AI 网关：哪些字段变化后必须失效？语言、区域、工具白名单和安全策略经常被遗漏。测试时使用两名不同权限的用户提交相同文本，确认绝不会收到对方的缓存结果。</p>
+<h2>上线前的最小测试</h2><p>执行跨租户命中测试、模型升级失效测试、策略变更失效测试和缓存删除演练。对需要统一入口、透明用量和多模型切换的团队，可先在 https://top-api.cc 这类中转入口梳理调用边界，再决定哪些调用适合缓存。</p>
+<h2>结语</h2>
+<p>好的 AI API 测评不是一次性打分，而是把风险点转化为可重复执行的检查。先验证边界条件，再逐步扩大流量，才能兼顾体验、成本和可追溯性。</p>
+</article><p><a href="../index.html">返回文章列表</a></p></body></html>

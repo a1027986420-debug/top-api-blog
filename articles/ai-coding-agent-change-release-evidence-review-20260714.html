@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 编程 Agent 怎么安全上线：PR 证据、最小权限、CI 合闸与回滚演练</title><meta name="description" content="让代码 Agent 自动提交不等于允许它自动发布；可靠流程要把变更证据和执行权限拆开。">
+<style>body{max-width:860px;margin:48px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.8;color:#172033} article{background:#fff} h1{line-height:1.35} h2{margin-top:2em} a{color:#2563eb}</style></head>
+<body><article>
+<h1>AI 编程 Agent 怎么安全上线：PR 证据、最小权限、CI 合闸与回滚演练</h1>
+<p><em>让代码 Agent 自动提交不等于允许它自动发布；可靠流程要把变更证据和执行权限拆开。</em></p>
+<p>本文面向正在接入多模型、AI Agent 与工具调用的开发团队，给出可操作的验收思路。所有测评应在自己的授权环境中进行，并保留可复核的测试记录。</p>
+<h2>把生成、审查与发布拆成独立权限</h2><p>代码 Agent 可以生成分支和 PR，但生产发布应由受限的 CI 身份执行。不要给交互式 Agent 长期生产密钥，也不要让它自行合并绕过保护分支。</p>
+<h2>PR 必须留下可验证证据</h2><p>每次变更应关联任务描述、受影响文件、测试结果、依赖变化和人工确认点。对基础设施或权限改动，要求产生可读的 plan 与 diff，而不是只接受一句“部署成功”。</p>
+<h2>CI 合闸要覆盖 Agent 特有问题</h2><p>除单元测试外，加入密钥扫描、依赖锁定检查、许可证检查和高风险路径的策略校验。对于生成的迁移脚本与删除操作，先在隔离环境演练，再允许进入生产队列。</p>
+<h2>回滚不是事后补救</h2><p>发布前就要确定回滚版本、数据兼容边界和负责人。用一次受控的失败发布验证告警、停止开关和回滚时间，才能判断 AI 编程流程是否真的可控。</p>
+<h2>结语</h2>
+<p>好的 AI API 测评不是一次性打分，而是把风险点转化为可重复执行的检查。先验证边界条件，再逐步扩大流量，才能兼顾体验、成本和可追溯性。</p>
+</article><p><a href="../index.html">返回文章列表</a></p></body></html>

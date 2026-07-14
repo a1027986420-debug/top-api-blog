@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>远程 MCP 接入怎么防令牌被转发：DPoP、令牌绑定与中转链路测评</title><meta name="description" content="仅验证 OAuth access token 是否有效还不够；远程 MCP 还要验证令牌能否被复制到另一台机器重放。">
+<style>body{max-width:860px;margin:48px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.8;color:#172033} article{background:#fff} h1{line-height:1.35} h2{margin-top:2em} a{color:#2563eb}</style></head>
+<body><article>
+<h1>远程 MCP 接入怎么防令牌被转发：DPoP、令牌绑定与中转链路测评</h1>
+<p><em>仅验证 OAuth access token 是否有效还不够；远程 MCP 还要验证令牌能否被复制到另一台机器重放。</em></p>
+<p>本文面向正在接入多模型、AI Agent 与工具调用的开发团队，给出可操作的验收思路。所有测评应在自己的授权环境中进行，并保留可复核的测试记录。</p>
+<h2>Bearer token 的问题在于“拿到就能用”</h2><p>传统 Bearer token 一旦落入日志、代理或错误的浏览器扩展，攻击者可能在别处重放。远程 MCP 的工具调用往往权限较高，因此要将令牌泄露假设纳入接入评审。</p>
+<h2>测试 DPoP 或其他持有证明</h2><p>支持 DPoP 的客户端会为请求签名，把令牌与客户端持有的密钥关联。验收时应复制同一个 token 到另一套客户端，确认服务端因缺少正确证明而拒绝；同时测试时钟偏移、重放 jti 和 URL 规范化。</p>
+<h2>中转链路不能吞掉安全语义</h2><p>若 AI 中转站代转 MCP 或 OAuth 请求，应明确哪些头可透传、哪些签名必须在边缘重新生成。中转服务只能帮助统一入口和观测，不能把客户端证明错误地变成服务端共享凭据。</p>
+<h2>最小权限仍是底线</h2><p>令牌受众、scope、有效期和工具清单要同时收紧。为高风险工具使用短期令牌和独立审计事件，并进行令牌撤销后的连接续用测试。</p>
+<h2>结语</h2>
+<p>好的 AI API 测评不是一次性打分，而是把风险点转化为可重复执行的检查。先验证边界条件，再逐步扩大流量，才能兼顾体验、成本和可追溯性。</p>
+</article><p><a href="../index.html">返回文章列表</a></p></body></html>

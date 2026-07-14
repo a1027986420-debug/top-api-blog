@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAG 向量检索怎么防越权：Metadata ACL、过滤顺序与泄漏验证清单</title><meta name="description" content="向量相似度不会理解权限；没有服务端 ACL 过滤的 RAG，很容易检索到不该展示的片段。">
+<style>body{max-width:860px;margin:48px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.8;color:#172033} article{background:#fff} h1{line-height:1.35} h2{margin-top:2em} a{color:#2563eb}</style></head>
+<body><article>
+<h1>RAG 向量检索怎么防越权：Metadata ACL、过滤顺序与泄漏验证清单</h1>
+<p><em>向量相似度不会理解权限；没有服务端 ACL 过滤的 RAG，很容易检索到不该展示的片段。</em></p>
+<p>本文面向正在接入多模型、AI Agent 与工具调用的开发团队，给出可操作的验收思路。所有测评应在自己的授权环境中进行，并保留可复核的测试记录。</p>
+<h2>权限过滤必须发生在服务端</h2><p>将文档权限写进前端提示词或让模型“不要引用”都不可靠。索引中的租户、组织、项目和文档状态应成为服务端查询过滤条件，并有默认拒绝逻辑。</p>
+<h2>别只测“正常用户能搜到什么”</h2><p>要构造跨组织同名文档、已撤权文档、软删除文档和权限刚变更的文档。检查召回候选、重排序输入和最终上下文三个阶段，确认未授权文本没有在任何阶段出现。</p>
+<h2>混合检索容易把过滤做丢</h2><p>关键词检索、向量检索、缓存和重排序服务常由不同组件实现。压测时分别记录每层过滤命中数，并验证 filter 在分页、fallback 与错误恢复路径中仍然存在。</p>
+<h2>把泄漏测试纳入发布门槛</h2><p>为每个租户准备 canary 文档和唯一短语，自动执行跨权限查询；一旦返回候选或答案中出现短语就阻断发布。这样比上线后等待用户发现更可靠。</p>
+<h2>结语</h2>
+<p>好的 AI API 测评不是一次性打分，而是把风险点转化为可重复执行的检查。先验证边界条件，再逐步扩大流量，才能兼顾体验、成本和可追溯性。</p>
+</article><p><a href="../index.html">返回文章列表</a></p></body></html>

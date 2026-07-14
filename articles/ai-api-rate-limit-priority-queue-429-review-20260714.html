@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI API 限流怎么测：令牌桶、优先级队列与 429 重试不能各自为政</title><meta name="description" content="从配额口径、优先级、Retry-After 到并发突刺，建立可复现的 AI API 限流测评方法。">
+<style>body{max-width:860px;margin:48px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.8;color:#172033} article{background:#fff} h1{line-height:1.35} h2{margin-top:2em} a{color:#2563eb}</style></head>
+<body><article>
+<h1>AI API 限流怎么测：令牌桶、优先级队列与 429 重试不能各自为政</h1>
+<p><em>从配额口径、优先级、Retry-After 到并发突刺，建立可复现的 AI API 限流测评方法。</em></p>
+<p>本文面向正在接入多模型、AI Agent 与工具调用的开发团队，给出可操作的验收思路。所有测评应在自己的授权环境中进行，并保留可复核的测试记录。</p>
+<h2>先把“限流”拆成可观察的四层</h2><p>AI API 的限流并不只是每分钟请求数。至少要区分请求数、输入与输出 token、并发连接，以及异步任务槽位。测试前应记录每一层的配额、计费口径和返回头；否则同样的 429，可能是租户额度、模型容量或单个密钥的保护阈值。</p>
+<h2>令牌桶与优先级队列要一起压测</h2><p>使用稳定流量、突发流量和混合模型流量三组样本。观察高优先级请求是否真的能在低优先级批处理堆积时获得服务，而不是只在控制台上显示一个“优先级”开关。对中转站而言，还要验证不同上游的配额不会被一个热模型拖空。</p>
+<h2>429 的正确处理不是无限重试</h2><p>客户端应识别 Retry-After、限制最大等待时间，并为不可重放的工具操作设置幂等键。将重试次数、等待时间、最终状态和消耗 token 写入日志，才能算出高峰期的真实成功率与额外成本。</p>
+<h2>验收清单</h2><p>验收时至少检查：响应头是否一致、优先级是否生效、突发后恢复时间、429 是否可解释，以及重试是否制造重复调用。把这些指标接入监控后，才有资格谈“稳定的 AI API”。</p>
+<h2>结语</h2>
+<p>好的 AI API 测评不是一次性打分，而是把风险点转化为可重复执行的检查。先验证边界条件，再逐步扩大流量，才能兼顾体验、成本和可追溯性。</p>
+</article><p><a href="../index.html">返回文章列表</a></p></body></html>

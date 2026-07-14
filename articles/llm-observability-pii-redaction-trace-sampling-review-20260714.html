@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LLM 可观测性怎么兼顾隐私：提示词脱敏、Trace 采样与回放数据的测评方法</title><meta name="description" content="Trace 能定位 AI 故障，也可能复制用户隐私；可观测性方案要同时测试定位能力和数据最小化。">
+<style>body{max-width:860px;margin:48px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.8;color:#172033} article{background:#fff} h1{line-height:1.35} h2{margin-top:2em} a{color:#2563eb}</style></head>
+<body><article>
+<h1>LLM 可观测性怎么兼顾隐私：提示词脱敏、Trace 采样与回放数据的测评方法</h1>
+<p><em>Trace 能定位 AI 故障，也可能复制用户隐私；可观测性方案要同时测试定位能力和数据最小化。</em></p>
+<p>本文面向正在接入多模型、AI Agent 与工具调用的开发团队，给出可操作的验收思路。所有测评应在自己的授权环境中进行，并保留可复核的测试记录。</p>
+<h2>先区分三类记录</h2><p>请求元数据、提示词内容和工具返回值的敏感度不同。团队应先决定哪些字段永久保存、哪些只保存摘要、哪些完全不出业务边界，而不是把完整请求一股脑写入 Trace。</p>
+<h2>脱敏规则要用对抗样本测试</h2><p>手机号、邮箱和身份证样式只是起点。还要测试分段文本、Unicode 变体、JSON 嵌套、工具输出和多语言地址。脱敏后仍需保留足够的关联 ID，才能定位一次失败调用的上游与下游。</p>
+<h2>采样策略应服从事故响应</h2><p>全量记录费用高且扩大暴露面；完全不采样又无法复盘。可按错误率、延迟、模型、租户等级和策略触发情况增加采样，并对高敏租户使用独立的保存与访问规则。</p>
+<h2>工具选择的比较维度</h2><p>比较 Helicone、OpenLit、Evidently 等可观测性工具时，不只看仪表盘；还要看字段掩码、保留期、导出控制、OpenTelemetry 兼容性和删除请求是否可验证。</p>
+<h2>结语</h2>
+<p>好的 AI API 测评不是一次性打分，而是把风险点转化为可重复执行的检查。先验证边界条件，再逐步扩大流量，才能兼顾体验、成本和可追溯性。</p>
+</article><p><a href="../index.html">返回文章列表</a></p></body></html>

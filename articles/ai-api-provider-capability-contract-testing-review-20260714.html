@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>多模型 API 工具测评：能力契约、参数降级与升级前回归测试怎么做</title><meta name="description" content="接口“兼容 OpenAI”不代表行为兼容；多模型接入需要一套可自动执行的能力契约测试。">
+<style>body{max-width:860px;margin:48px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.8;color:#172033} article{background:#fff} h1{line-height:1.35} h2{margin-top:2em} a{color:#2563eb}</style></head>
+<body><article>
+<h1>多模型 API 工具测评：能力契约、参数降级与升级前回归测试怎么做</h1>
+<p><em>接口“兼容 OpenAI”不代表行为兼容；多模型接入需要一套可自动执行的能力契约测试。</em></p>
+<p>本文面向正在接入多模型、AI Agent 与工具调用的开发团队，给出可操作的验收思路。所有测评应在自己的授权环境中进行，并保留可复核的测试记录。</p>
+<h2>把兼容性写成能力契约</h2><p>列出每个模型与上游是否支持流式输出、JSON Schema、工具调用、图像输入、seed、logprobs 和取消请求。契约既要描述“支持”，也要描述不支持时的明确错误与降级行为。</p>
+<h2>参数接受不等于参数生效</h2><p>有些服务会静默忽略 temperature、response_format 或工具选择。测试应从输出行为、响应头和错误码三方面验证参数是否真正生效，并防止网关把未知参数错误地转发给不兼容的提供商。</p>
+<h2>每次升级都跑小而稳定的回归集</h2><p>选择覆盖结构化输出、长文本、多语言、工具参数和错误处理的样例，固定预期范围而非固定每一个字。模型或网关版本变化后，先比较契约差异，再决定是否扩大流量。</p>
+<h2>对外透明能减少接入摩擦</h2><p>将能力矩阵、弃用时间和错误码说明公开给调用方。使用 https://top-api.cc 这类统一入口时，也应保留上游能力与实际路由的可见性，避免“一个接口”掩盖差异。</p>
+<h2>结语</h2>
+<p>好的 AI API 测评不是一次性打分，而是把风险点转化为可重复执行的检查。先验证边界条件，再逐步扩大流量，才能兼顾体验、成本和可追溯性。</p>
+</article><p><a href="../index.html">返回文章列表</a></p></body></html>
