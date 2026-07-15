@@ -1,0 +1,19 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI API 计费核对怎么做：Token、工具调用、缓存折扣与异步任务要建立同一账本</title><meta name="description" content=""><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="../index.html">返回文章列表</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-13</span></div><h1>AI API 计费核对怎么做：Token、工具调用、缓存折扣与异步任务要建立同一账本</h1><p class="summary">AI 调用成本并不只有输入和输出 Token。缓存、工具、图像、音频、异步任务与重试都可能造成账单差异。本文给出统一对账方法。</p><div class="content"><p>AI API 的账单差异常被归咎于“模型价格变了”，但更多时候是计量口径不一致：业务日志只记聊天 Token，供应商还计入缓存读写、图像像素、音频分钟、工具执行或异步任务轮询。没有统一账本，团队既无法解释成本，也很难判断重试和回退是否真的划算。</p>
+<h2>为每次调用建立成本事件链</h2>
+<p>用一个请求 ID 串联客户端请求、中转站路由、上游响应、工具步骤和最终账单项。记录模型版本、输入输出计量、缓存命中类型、图像或音频单位、异步任务状态、重试次数和货币单位。原始账单与内部估算分开保存，避免将预估价格误认为已结算金额。</p>
+<h2>缓存折扣需要单独验证</h2>
+<p>不同供应商对缓存读、写和过期的计费方式不同。测试同一提示词首次调用、短间隔复用、超时后复用和只改一个参数四种情况，比较响应中的 usage 与账单导出。若无法得到明细，不要基于“应该命中缓存”给业务方承诺固定节省比例。</p>
+<h2>异步与工具调用最容易双算</h2>
+<p>视频、批处理、检索和浏览器工具常有创建费、运行费和结果下载费。失败重试是否免费、取消后是否结算、回调重复是否产生重复任务，都必须写进对账规则。对于可产生写操作的工具，成本和业务副作用也要一起核对，不能只看金额。</p>
+<h2>中转站的作用是对齐口径</h2>
+<p>接入 <a href="https://top-api.cc">top-api.cc</a> 时，可将多供应商 usage 归一为内部成本事件，并保留原始字段以便审计。归一化不是抹平差异，而是让团队能同时看到“供应商如何收费”和“业务如何使用”。设置预算提醒时，也应按预计、已确认和待结算三类金额分别触发。</p>
+<h2>月度对账清单</h2>
+<ul>
+<li>抽样比对内部请求数与供应商账单行；</li>
+<li>按模型、租户、项目和任务类型拆分差异；</li>
+<li>单独检查缓存、异步取消、重试和工具调用；</li>
+<li>对无法映射的费用保留原因码，不强行均摊；</li>
+<li>价格与计量规则变更后重跑历史估算。</li>
+</ul>
+<p>能解释每一笔成本，才能合理比较模型和工具。统一账本的目标不是生成更漂亮的报表，而是让优化和预算决策有可复核的事实基础。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
