@@ -1,12 +1,82 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI API 限流怎么测：令牌桶、优先级队列与 429 重试不能各自为政</title><meta name="description" content="从配额口径、优先级、Retry-After 到并发突刺，建立可复现的 AI API 限流测评方法。"><link rel="canonical" href="https://blog.top-api.cc/?p=139"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="../index.html">返回文章列表</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-14</span></div><h1>AI API 限流怎么测：令牌桶、优先级队列与 429 重试不能各自为政</h1><p class="summary">从配额口径、优先级、Retry-After 到并发突刺，建立可复现的 AI API 限流测评方法。</p><div class="content"><p>从配额口径、优先级、Retry-After 到并发突刺，建立可复现的 AI API 限流测评方法。</p>
-<h2>先把“限流”拆成可观察的四层</h2>
-<p>AI API 的限流并不只是每分钟请求数。至少要区分请求数、输入与输出 token、并发连接，以及异步任务槽位。测试前应记录每一层的配额、计费口径和返回头；否则同样的 429，可能是租户额度、模型容量或单个密钥的保护阈值。</p>
-<h2>令牌桶与优先级队列要一起压测</h2>
-<p>使用稳定流量、突发流量和混合模型流量三组样本。观察高优先级请求是否真的能在低优先级批处理堆积时获得服务，而不是只在控制台上显示一个“优先级”开关。对中转站而言，还要验证不同上游的配额不会被一个热模型拖空。</p>
-<h2>429 的正确处理不是无限重试</h2>
-<p>客户端应识别 Retry-After、限制最大等待时间，并为不可重放的工具操作设置幂等键。将重试次数、等待时间、最终状态和消耗 token 写入日志，才能算出高峰期的真实成功率与额外成本。</p>
-<h2>验收清单</h2>
-<p>验收时至少检查：响应头是否一致、优先级是否生效、突发后恢复时间、429 是否可解释，以及重试是否制造重复调用。把这些指标接入监控后，才有资格谈“稳定的 AI API”。</p>
-<h2>结语</h2>
-<p>好的 AI API 测评应转换为可重复执行的检查，并根据真实结果持续更新。</p>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI API 限流怎么测：令牌桶、优先级队列与 429 重试不能各自为政</title><meta name="description" content="用共享预算把令牌桶、优先级队列和 429 重试纳入同一套可审计状态机，避免重试放大、排队超时与重复计费。"><link rel="canonical" href="https://blog.top-api.cc/?p=139"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="../index.html">返回文章列表</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-14</span></div><h1>AI API 限流怎么测：令牌桶、优先级队列与 429 重试不能各自为政</h1><p class="summary">用共享预算把令牌桶、优先级队列和 429 重试纳入同一套可审计状态机，避免重试放大、排队超时与重复计费。</p><div class="content"><blockquote>
+<p>更新日期：2026-07-15<br />
+适用范围：需要通过统一 API 网关调用多个模型、并希望把 429 处理做成可验证工程能力的团队。本文不是任何供应商的吞吐量排行，也不提供跨平台“最快/最低价”结论。</p>
+</blockquote>
+<h2>先给结论</h2>
+<p>429 不是“客户端多等一会儿”就能解决的普通异常。它代表服务端当前拒绝继续接受请求；在 HTTP 语义里，服务端可以通过 <code>Retry-After</code> 告诉客户端何时再试，但不保证每一个 429 都带该字段。<a href="https://www.rfc-editor.org/rfc/rfc6585">RFC 6585</a> 定义了 429 <code>Too Many Requests</code>，而 <a href="https://www.rfc-editor.org/rfc/rfc9110">RFC 9110</a> 说明了 <code>Retry-After</code> 的两种表达形式。工程上，令牌桶、优先级队列和重试必须共用同一份请求预算与取消语义；把三者分散到 SDK、网关和业务层，会制造重复扣费、低优先级饿死和“已经超时仍在重试”的隐性故障。</p>
+<h2>先定义四个可测指标</h2>
+<p>不要只记录“429 次数”。一次压测至少记录以下字段：</p>
+<div class="article-table-wrap"><table class="article-table">
+<thead>
+<tr>
+<th>指标</th>
+<th>定义</th>
+<th>为什么需要它</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>接受率</td>
+<td>真正进入上游的请求 / 入站请求</td>
+<td>区分网关本地限流与上游拒绝</td>
+</tr>
+<tr>
+<td>429 比例</td>
+<td>按模型、租户、优先级分组的 429</td>
+<td>定位谁耗尽了预算</td>
+</tr>
+<tr>
+<td>排队等待</td>
+<td>入队到首次上游尝试的耗时</td>
+<td>防止队列把可用请求拖成超时</td>
+</tr>
+<tr>
+<td>端到端结果</td>
+<td>成功、取消、超时、最终失败</td>
+<td>防止重试掩盖用户体验</td>
+</tr>
+</tbody>
+</table></div>
+<p>测试环境应记录网关版本、模型路由规则、并发数、超时、每租户配额、是否启用流式响应，以及测试开始/结束时间。缺少这些条件的“QPS”不能拿来比较。</p>
+<h2>三层控制必须共享状态</h2>
+<h3>1. 令牌桶负责“能否立刻发”</h3>
+<p>令牌桶应按<strong>租户 + 上游模型 + 请求类别</strong>至少三个维度计费。仅按全局 key 限流会让一个批处理任务挤掉交互请求；只按租户限流又会忽略单一上游的容量。令牌不足时，不要直接把请求交给客户端循环重发，而是返回可解释的等待时间或放入受控队列。</p>
+<h3>2. 优先级队列负责“谁先获得下一个令牌”</h3>
+<p>优先级不能只是一列数字。建议至少分为：用户交互、在线 Agent 工具调用、可延迟批处理。每个优先级都应有最大排队时长；到期后必须取消或降级，而不是无限等待。还要设置老化规则：低优先级等待超过阈值后逐步提升，避免长期饥饿。</p>
+<h3>3. 重试负责“何时值得再试”</h3>
+<p>重试器应只接收仍未过期、尚未取消、且幂等性可确认的请求。优先遵守 <code>Retry-After</code>；没有该字段时，使用带抖动的指数退避，并受总尝试次数和总截止时间双重约束。流式生成已经输出部分内容时，默认不应自动重放，否则可能造成重复内容和重复计费。</p>
+<h2>可复现实验脚本的最小结构</h2>
+<p>下面是语言无关的控制流；它的重点不是具体数值，而是状态只在一个调度器内更新：</p>
+<pre><code class="language-text">request -&gt; deadline check -&gt; priority queue
+queue head -&gt; acquire(tenant, model) token
+  no token: schedule at retry_after or next_refill
+  token: call upstream with idempotency key
+upstream 429 -&gt; release/record outcome -&gt; retry only before deadline
+upstream success -&gt; record first-byte, total latency, usage
+cancel/timeout -&gt; remove queued work and block later retry
+</code></pre>
+<p>日志至少包含 <code>request_id</code>、<code>tenant_id</code>、<code>model_route</code>、<code>priority</code>、<code>queue_ms</code>、<code>attempt</code>、<code>retry_after_ms</code>、<code>final_status</code>。用这些字段才能回答“429 是哪个租户、哪条路由、哪种优先级造成的”。</p>
+<h2>常见失败模式</h2>
+<ul>
+<li><strong>每层各自重试</strong>：SDK、网关和业务 worker 同时重试，放大流量。</li>
+<li><strong>令牌在请求完成后才扣除</strong>：突发流量会同时穿透桶，随后一起收到 429。</li>
+<li><strong>只看平均延迟</strong>：队列等待被平均值掩盖，少数交互请求已超时。</li>
+<li><strong>没有取消传播</strong>：浏览器关闭后，上游仍在生成并计费。</li>
+<li><strong>把 429 视为可忽略告警</strong>：持续 429 会让排队、重试和连接池全部失去稳定边界。</li>
+</ul>
+<h2>中转层怎样落地</h2>
+<p>像 <code>top-api.cc</code> 这类多模型接入层，更适合把路由、配额、预算告警和调用日志放在同一个控制面：业务侧只声明请求优先级和截止时间，网关负责选择上游并返回可审计结果。接入前先在测试租户中验证 429、取消、切换和费用归属，再将策略扩大到生产租户。</p>
+<h2>限制与下一步</h2>
+<p>不同供应商对 RPM、TPM、并发和流式计费的定义并不相同；本文的队列结构不能替代供应商文档或合同限额。上线后应按周复盘按租户/模型划分的 429、排队等待和最终失败，并把异常样本保留到可回放的审计日志中。</p>
+<h2>参考资料</h2>
+<ol>
+<li><a href="https://www.rfc-editor.org/rfc/rfc6585">RFC 6585：429 Too Many Requests</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc9110">RFC 9110：Retry-After 字段语义</a></li>
+</ol>
+<h2>一次上线前演练的步骤</h2>
+<p>先为交互、后台和回填任务各创建一个测试租户，并给每类流量配置独立的并发与令牌预算。第一轮只发送低于限额的稳定流量，确认成功率、首包时间和 usage 字段可以关联到 <code>request_id</code>；第二轮逐步提高并发，直到本地桶开始拒绝；第三轮再提高到上游出现 429。三轮之间不要更换模型、提示词或超时，否则结果无法归因。</p>
+<p>演练结束后，抽取十条“排队后成功”、十条“按 Retry-After 重试”、十条“截止时间到期取消”的记录。检查同一个 <code>request_id</code> 是否只有一次最终扣费、队列项是否在取消后被删除、低优先级是否没有无限等待。若无法回答这些问题，先修正日志和状态机，再讨论提升限额。</p>
+<p>还应明确对调用方的返回契约：本地拒绝使用什么状态码、是否返回建议等待时间、是否区分租户配额和上游限额、流式连接中断如何标识。稳定的错误契约能让业务侧停止盲目重试，也让客服、财务和研发看到同一份事件解释。</p>
+<h2>复盘节奏</h2>
+<p>将以上指标按小时、租户和模型路由保留趋势图，并为突发 429、排队超时和重试放大设置独立告警。告警触发后先冻结新增重试，再核对限额配置和上游状态，避免排障动作本身继续放大负载。</p>
 </div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
