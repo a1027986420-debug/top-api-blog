@@ -1,15 +1,80 @@
-<!doctype html>
-<html lang="zh-CN"><head><link rel="canonical" href="https://blog.top-api.cc/?p=142"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>远程 MCP 接入怎么防令牌被转发：DPoP、令牌绑定与中转链路测评</title><meta name="description" content="仅验证 OAuth access token 是否有效还不够；远程 MCP 还要验证令牌能否被复制到另一台机器重放。">
-<style>body{max-width:860px;margin:48px auto;padding:0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;line-height:1.8;color:#172033} article{background:#fff} h1{line-height:1.35} h2{margin-top:2em} a{color:#2563eb}</style></head>
-<body><article>
-<h1>远程 MCP 接入怎么防令牌被转发：DPoP、令牌绑定与中转链路测评</h1>
-<p><em>仅验证 OAuth access token 是否有效还不够；远程 MCP 还要验证令牌能否被复制到另一台机器重放。</em></p>
-<p>本文面向正在接入多模型、AI Agent 与工具调用的开发团队，给出可操作的验收思路。所有测评应在自己的授权环境中进行，并保留可复核的测试记录。</p>
-<h2>Bearer token 的问题在于“拿到就能用”</h2><p>传统 Bearer token 一旦落入日志、代理或错误的浏览器扩展，攻击者可能在别处重放。远程 MCP 的工具调用往往权限较高，因此要将令牌泄露假设纳入接入评审。</p>
-<h2>测试 DPoP 或其他持有证明</h2><p>支持 DPoP 的客户端会为请求签名，把令牌与客户端持有的密钥关联。验收时应复制同一个 token 到另一套客户端，确认服务端因缺少正确证明而拒绝；同时测试时钟偏移、重放 jti 和 URL 规范化。</p>
-<h2>中转链路不能吞掉安全语义</h2><p>若 AI 中转站代转 MCP 或 OAuth 请求，应明确哪些头可透传、哪些签名必须在边缘重新生成。中转服务只能帮助统一入口和观测，不能把客户端证明错误地变成服务端共享凭据。</p>
-<h2>最小权限仍是底线</h2><p>令牌受众、scope、有效期和工具清单要同时收紧。为高风险工具使用短期令牌和独立审计事件，并进行令牌撤销后的连接续用测试。</p>
-<h2>结语</h2>
-<p>好的 AI API 测评不是一次性打分，而是把风险点转化为可重复执行的检查。先验证边界条件，再逐步扩大流量，才能兼顾体验、成本和可追溯性。</p>
-</article><p><a href="../index.html">返回文章列表</a></p></body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>远程 MCP 接入怎么防令牌被转发：DPoP、令牌绑定与中转链路测评</title><meta name="description" content="用 DPoP、最小权限、nonce 与可追溯日志降低远程 MCP 令牌重放风险，并给出可复现实验清单。"><link rel="canonical" href="https://blog.top-api.cc/?p=142"><style>body{margin:0;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}.wrap{max-width:1040px;margin:0 auto;padding:0 24px}header{background:#fff;border-bottom:1px solid #e5e7eb}.bar{height:64px;display:flex;align-items:center}.brand{font-weight:800;color:#111827;text-decoration:none}.hero{padding:42px 0 22px}.list{display:grid;gap:18px;padding-bottom:44px}.card,.detail{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.06)}.card{padding:24px}.detail{padding:34px;margin:28px 0 44px}.meta{display:flex;gap:10px;color:#6b7280;font-size:13px;margin-bottom:12px}.chip{border:1px solid #dbeafe;background:#eff6ff;color:#2563eb;border-radius:999px;padding:3px 9px}h2{font-size:22px;margin:0 0 10px}h2 a{color:#111827;text-decoration:none}.summary{color:#4b5563;line-height:1.75}.read,.content a{color:#2563eb}.detail h1{font-size:38px;line-height:1.14;margin:0 0 16px}.content{font-size:17px;line-height:1.9;color:#1f2937}.content h2{font-size:28px;margin:1.65em 0 .7em}.back{display:inline-block;margin:28px 0 18px;color:#4b5563;text-decoration:none}footer{border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;padding:24px 0 36px}</style></head><body><header><div class="wrap bar"><a class="brand" href="/top-api-blog/">top-api.cc AI API Blog</a></div></header><main class="wrap"><a class="back" href="../index.html">返回文章列表</a><article class="detail"><div class="meta"><span class="chip">AI API</span><span>2026-07-14</span></div><h1>远程 MCP 接入怎么防令牌被转发：DPoP、令牌绑定与中转链路测评</h1><p class="summary">用 DPoP、最小权限、nonce 与可追溯日志降低远程 MCP 令牌重放风险，并给出可复现实验清单。</p><div class="content"><blockquote>
+<p>更新日期：2026-07-15<br />
+适用范围：远程 MCP、OAuth 受保护资源和经由网关转发的 Agent 工具调用。本文讨论令牌重放与链路验证，不把 DPoP 当作单独解决所有授权问题的方案。</p>
+</blockquote>
+<h2>结论：令牌“能用”不等于令牌“只能由原客户端用”</h2>
+<p>远程 MCP 常把浏览器、Agent、网关和工具服务器串成一条链。若访问令牌被日志、代理、浏览器扩展或错误的重定向带走，持有该 bearer token 的任何一方都可能重放它。DPoP（Demonstrating Proof-of-Possession）提供了一个重要补强：客户端针对每个 HTTP 请求签名，资源服务器验证签名、方法、目标 URI 与时间相关声明，从而把令牌的使用与持有私钥的客户端绑定。<a href="https://www.rfc-editor.org/rfc/rfc9449">RFC 9449</a> 定义了 DPoP；<a href="https://www.rfc-editor.org/rfc/rfc9700">RFC 9700</a> 则总结了 OAuth 2.0 的安全最佳实践。</p>
+<p>这并不意味着“加了 DPoP 就安全”。它只能降低已泄露令牌被直接重放的概率，前提是资源服务器正确验证证明、私钥未泄露、代理没有改变目标语义，且授权范围仍遵循最小权限。</p>
+<h2>先画出远程 MCP 的授权边界</h2>
+<p>一个可审计的最小链路应明确以下角色：</p>
+<div class="article-table-wrap"><table class="article-table">
+<thead>
+<tr>
+<th>角色</th>
+<th>应持有什么</th>
+<th>不应持有什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>浏览器/Agent 客户端</td>
+<td>短期私钥、当前会话状态</td>
+<td>长期服务端密钥、全租户 token</td>
+</tr>
+<tr>
+<td>授权服务器</td>
+<td>客户端登记和授权策略</td>
+<td>工具业务数据</td>
+</tr>
+<tr>
+<td>网关</td>
+<td>路由与策略决策、可脱敏审计</td>
+<td>可导出的明文令牌日志</td>
+</tr>
+<tr>
+<td>MCP 工具服务器</td>
+<td>经验证的访问令牌及细粒度 scope</td>
+<td>不受限的上游管理权限</td>
+</tr>
+</tbody>
+</table></div>
+<p>每次转发前都要问：目标服务是否仍然是原 token 的受众？scope 是否仍对应当前工具？调用是否超出用户发起的会话？这些问题无法由单纯的 HTTP 200 回答。</p>
+<h2>DPoP 验证清单</h2>
+<p>资源服务器或网关收到 <code>DPoP</code> 证明后，至少验证：</p>
+<ol>
+<li>JWS 签名与内嵌公钥可验证，算法符合本系统允许列表；</li>
+<li><code>htm</code> 与实际 HTTP 方法一致；</li>
+<li><code>htu</code> 与规范化后的目标 URI 一致，不能只比较 host；</li>
+<li><code>iat</code> 在允许时钟偏差内，<code>jti</code> 在短窗口内不可重复；</li>
+<li>access token 的 <code>cnf.jkt</code> 与证明中的公钥指纹匹配；</li>
+<li>若使用 nonce，客户端能在收到挑战后重新取证，而不是把旧证明重发；</li>
+<li>反向代理改写路径或 scheme 后，验证点仍使用对外可见的原始 URI。</li>
+</ol>
+<p>其中第 3 和第 7 点最容易在中转链路里被忽略。网关若将 <code>/mcp/files/read</code> 改写为内部 <code>/v1/tool/read</code>，但资源服务器拿内部路径校验 <code>htu</code>，合法请求会失败；若只比较域名，则攻击者可能把证明复用到同主机的另一路径。</p>
+<h2>可复现实验设计</h2>
+<p>测试环境应包含一个授权服务器、一个反向代理、一个受保护 MCP 工具和两个客户端密钥。为每一步保存脱敏日志：<code>request_id</code>、<code>jti</code> 哈希、<code>jkt</code>、方法、外部 URI、验证结果和拒绝原因。至少执行以下负例：</p>
+<pre><code class="language-text">A. 用同一 DPoP 证明重放同一请求 -&gt; 应被 jti 去重拒绝
+B. 将 GET 证明改用于 POST -&gt; htm 不匹配
+C. 将 /read 证明改用于 /write -&gt; htu 不匹配
+D. 更换客户端密钥但沿用 access token -&gt; cnf.jkt 不匹配
+E. 令 iat 过期或未来时间过大 -&gt; 时间窗口拒绝
+</code></pre>
+<p>这些用例验证的是控制逻辑，不代表某个供应商默认已经开启 DPoP。只有把实际返回码、代理配置版本和验证日志一起保存，才构成可复盘的安全证据。</p>
+<h2>与最小权限、回滚一起使用</h2>
+<p>DPoP 不替代短生命周期 token、细粒度 scope、租户隔离、工具审批和密钥轮换。高影响工具（删除数据、部署、付款、外发消息）仍应有单独确认或策略门。发生异常时，先吊销对应会话或 client key，再检索同一 <code>jkt</code> 关联的调用；不要依赖“令牌已经过期”作为唯一处置手段。</p>
+<p>对于需要快速接入多模型和工具路由的团队，<code>top-api.cc</code> 这类中转层应把 token 处理与模型 API 密钥隔离，并提供按租户、路由和工具范围的调用审计。上线前先把上述负例跑通，再允许真实用户授权。</p>
+<h2>限制</h2>
+<p>DPoP 的互操作性取决于授权服务器、客户端和资源服务器同时支持相关流程；遗留 SDK、WebSocket 或代理重写环境需要额外设计。本文不构成 OAuth 部署指南，也不能替代对具体 MCP 实现、浏览器存储方式和组织授权策略的安全评估。</p>
+<h2>参考资料</h2>
+<ol>
+<li><a href="https://www.rfc-editor.org/rfc/rfc9449">RFC 9449：OAuth 2.0 Demonstrating Proof of Possession</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc9700">RFC 9700：OAuth 2.0 Security Best Current Practice</a></li>
+</ol>
+<h2>私钥、nonce 与审计的运行边界</h2>
+<p>私钥应只存在于能够代表当前客户端的受保护存储中，不应随着 access token 一起写入日志、配置中心或工具参数。服务端验证 <code>jti</code> 时，保存短期哈希即可；保存完整 DPoP JWT 会扩大敏感数据留存。多实例网关要共享或一致地访问短期去重存储，否则同一证明可能从不同实例穿透。</p>
+<p>nonce 机制适合降低时钟偏差和重放窗口带来的不确定性，但客户端必须把挑战当作一次新的签名请求，而不是原封不动重传旧 header。审计系统则应记录验证结论而非原 token：例如 <code>dpop_valid=true</code>、<code>reason=htu_mismatch</code>、<code>key_thumbprint_hash</code>。这样既能排查路由问题，也不会把可利用凭据放进日志。</p>
+<p>最后，把 token 交换、资源访问和工具执行三类失败分别计数。授权服务器签发失败、网关证明校验失败、工具 scope 拒绝需要不同的告警与处置人；混为“MCP 调用失败”会让真正的授权异常被业务错误淹没。</p>
+<h2>发布前确认</h2>
+<p>上线前让客户端、网关和工具服务各自输出一次脱敏验证日志，确认它们对同一请求的
+equest_id、目标 URI 与授权范围理解一致。任何一端无法解释拒绝原因时，都应停在灰度环境继续排查。</p>
+</div></article></main><footer><div class="wrap">Copyright 2026 top-api.cc</div></footer></body></html>
